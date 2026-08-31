@@ -1,0 +1,6 @@
+@elmanassa_HostAddress = http://localhost:5299
+
+GET {{elmanassa_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

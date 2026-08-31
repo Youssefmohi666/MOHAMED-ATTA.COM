@@ -1,0 +1,26 @@
+## .NET build output
+bin/
+obj/
+*.user
+*.suo
+
+## Publish output
+publish/
+
+## Runtime / logs
+*.log
+nohup.out
+
+## Secrets & local config (never commit real credentials)
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+.env
+.env.*
+!appsettings.Template.json
+!.env.example
+
+## OS / editor
+.DS_Store
+Thumbs.db
+.vs/
