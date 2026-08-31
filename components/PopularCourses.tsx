@@ -9,56 +9,7 @@ interface PopularCoursesProps {
   onNavigate: (page: Page, payload?: any) => void;
 }
 
-const FALLBACK_COURSES: Course[] = [
-  {
-    id: 1,
-    title: 'تطوير الويب Full Stack',
-    category: 'برمجة',
-    description: 'تعلم تطوير الويب من الصفر حتى الاحتراف باستخدام أحدث التقنيات',
-    instructorName: 'أحمد محمد',
-    rating: 4.9,
-    duration: 40,
-    lecturesCount: 120,
-    level: 'مبتدئ',
-    language: 'العربية',
-    students: 3200,
-    price: 299,
-    isFree: false,
-    imageUrl: '/assets/courses/web_development_course_cover_1774214768064.png',
-  },
-  {
-    id: 2,
-    title: 'تصميم واجهات المستخدم UI/UX',
-    category: 'تصميم',
-    description: 'احترف تصميم تجربة المستخدم وواجهات التطبيقات الحديثة',
-    instructorName: 'سارة العلي',
-    rating: 4.8,
-    duration: 30,
-    lecturesCount: 85,
-    level: 'متوسط',
-    language: 'العربية',
-    students: 2100,
-    price: 249,
-    isFree: false,
-    imageUrl: '/assets/courses/ui_ux_cover_1774214868681.png',
-  },
-  {
-    id: 3,
-    title: 'التسويق الرقمي والسوشيال ميديا',
-    category: 'تسويق',
-    description: 'استراتيجيات التسويق الرقمي وإدارة منصات التواصل الاجتماعي',
-    instructorName: 'خالد الشمري',
-    rating: 4.7,
-    duration: 25,
-    lecturesCount: 70,
-    level: 'مبتدئ',
-    language: 'العربية',
-    students: 1800,
-    price: 199,
-    isFree: false,
-    imageUrl: '/assets/courses/social_media_cover_1774214883097.png',
-  },
-];
+const FALLBACK_COURSES: Course[] = [];
 
 const PopularCourses: React.FC<PopularCoursesProps> = ({ onNavigate }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -89,15 +40,12 @@ const PopularCourses: React.FC<PopularCoursesProps> = ({ onNavigate }) => {
         }));
         if (items.length > 0) setCourses(items);
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.warn('Failed to load popular courses:', err);
+      });
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
+      ([entry]) => { setIsVisible(entry.isIntersecting); },
       { threshold: 0.1 }
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
@@ -105,67 +53,73 @@ const PopularCourses: React.FC<PopularCoursesProps> = ({ onNavigate }) => {
   }, []);
 
   return (
-    <section dir="rtl" ref={sectionRef} className="relative py-20 md:py-32 overflow-hidden">
-      {/* Background decorations */}
+    <section dir="rtl" ref={sectionRef} className="relative py-20 md:py-28 overflow-hidden bg-[#FAF6EB] dark:bg-[#0d1f33]">
+      {/* NO blobs — geometric dots */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#4F8751]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#034289]/5 rounded-full blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle, #1E3A8A 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
-        <div
-          className={`flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12 transition-all duration-700 ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <div>
-            <span className="inline-block px-4 py-2 bg-[#034289]/10 rounded-full text-[#034289] font-semibold text-sm mb-4">
-              اختيارات مميزة
-            </span>
-            <h2 className="text-4xl md:text-5xl font-black text-[#034289] mb-3">
-              الدورات الأكثر{' '}
-              <span className="text-[#4F8751]">شعبية</span>
+        {/* Header — glossy badge */}
+        <div className={`flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="gloss-in gdelay-1">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-gradient-to-br from-[#DC2626] to-[#EF4444] text-white font-bold text-xs mb-5 shadow-lg shadow-[#DC2626]/25">
+              الأكثر طلباً
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black text-[#0f172a] dark:text-white mb-3 leading-tight">
+              الدورات <span className="text-[#DC2626]">الأشهر</span>
             </h2>
-            <p className="text-[#034289]/65 text-lg max-w-2xl">
-              اكتشف الدورات الأكثر طلباً والتي حققت أعلى تقييمات من طلابنا
+            <p className="text-[#64748b] dark:text-slate-300 text-lg max-w-xl">
+              اكتشف الدورات اللي حققت أعلى تقييمات من طلابنا
             </p>
           </div>
 
           <button
             type="button"
             onClick={() => onNavigate('courses')}
-            className="group flex items-center gap-3 px-6 py-3 bg-[#D2E1D9]/30 hover:bg-[#D2E1D9]/50 rounded-xl border border-[#D2E1D9] transition-colors duration-200 cursor-pointer"
+            className="group flex items-center gap-3 px-6 py-3 rounded-xl text-white font-bold bg-gradient-to-l from-[#1E3A8A] to-[#3B82F6] shadow-[0_12px_30px_-8px_rgba(30,58,138,0.6)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer hover-shine"
           >
-            <span className="text-lg font-bold text-[#034289] group-hover:text-[#4F8751] transition-colors duration-200">
-              عرض كل الدورات
-            </span>
-            <div className="w-8 h-8 bg-[#4F8751] rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+            <span>عرض كل الدورات</span>
+            <div className="w-8 h-8 bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors rounded-lg">
               <ArrowLeftIcon className="w-4 h-4 text-white" />
             </div>
           </button>
         </div>
 
-        {/* Courses Grid — 1 col mobile, 2 cols tablet, 3 cols desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {courses.slice(0, 3).map((course, index) => (
-            <div
-              key={course.id}
-              className={`transition-all duration-700 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-              }`}
-              style={{ transitionDelay: `${(index + 1) * 150}ms` }}
-            >
-              <CourseCard
-                course={course}
-                onClick={() => onNavigate('course-detail', { courseId: course.guidId || course.id })}
-                onEnroll={() => onNavigate('checkout', { courseId: course.guidId || course.id })}
-              />
+        {/* Courses Grid */}
+        {courses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courses.slice(0, 3).map((course, index) => (
+              <div
+                key={course.id}
+                className={`transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                style={{ transitionDelay: `${(index + 1) * 100}ms` }}
+              >
+                <CourseCard
+                  course={course}
+                  onClick={() => onNavigate('course-detail', { courseId: course.guidId || course.id })}
+                  onEnroll={() => onNavigate('checkout', { courseId: course.guidId || course.id })}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={`text-center py-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="w-20 h-20 bg-gray-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-gray-300 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+              </svg>
             </div>
-          ))}
-        </div>
-
-
+            <h3 className="text-xl font-bold text-[#0f172a] dark:text-white mb-3">لا توجد دورات متاحة حالياً</h3>
+            <p className="text-[#64748b] dark:text-slate-300 text-sm mb-6 max-w-sm mx-auto">نعمل على إضافة دورات جديدة قريباً.</p>
+            <button
+              onClick={() => onNavigate('courses')}
+              className="px-6 py-3 rounded-xl text-white font-bold bg-gradient-to-l from-[#DC2626] to-[#EF4444] shadow-[0_12px_30px_-8px_rgba(220,38,38,0.6)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer hover-shine"
+            >
+              تصفح جميع الدورات
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

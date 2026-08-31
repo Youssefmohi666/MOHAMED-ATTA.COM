@@ -10,7 +10,7 @@ export function getStats() {
 
 export async function getTestimonials() {
     try {
-        const json = await apiRequest("/testimonials");
+        const json = await apiRequest("/content/testimonials");
         const raw = Array.isArray(json) ? json : (json.data ?? []);
         return raw.map((t: any) => ({
             id: t.id,
@@ -24,6 +24,13 @@ export async function getTestimonials() {
     } catch {
         return [];
     }
+}
+
+export function postComment(data: { content: string }) {
+    return apiRequest("/content/comments", {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
 }
 
 // ── Blog ───────────────────────────────────────────────────

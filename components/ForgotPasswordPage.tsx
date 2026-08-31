@@ -103,7 +103,7 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
     return s;
   };
   const strength = getPasswordStrength();
-  const strengthColors = ['', 'bg-red-400', 'bg-yellow-400', 'bg-[#4F8751]/60', 'bg-[#4F8751]'];
+  const strengthColors = ['', 'bg-red-400', 'bg-yellow-400', 'bg-[#DC2626]/60', 'bg-[#DC2626]'];
   const strengthLabels = ['', 'ضعيفة', 'متوسطة', 'جيدة', 'قوية'];
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -136,22 +136,22 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
   return (
     <div dir="rtl" className="min-h-[80vh] flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ fontFamily: "'Cairo', sans-serif" }}>
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#4F8751]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#034289]/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#DC2626]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-[#1E3A8A]/10 rounded-full blur-3xl" />
         <div className="absolute inset-0 dots-pattern opacity-20" />
       </div>
 
       <div className="relative w-full max-w-md animate-fade-in-up">
-        <div className="card-premium glass bg-white/90 p-8 md:p-10 rounded-3xl border border-[#D2E1D9]/50 shadow-2xl">
+        <div className="gloss-card gloss-in bg-white/80 dark:bg-[#0d1f33]/80 p-8 md:p-10">
 
           {/* Step indicator */}
           <div className="flex items-center justify-center gap-2 mb-8">
             {(['email', 'code', 'newPassword'] as Step[]).map((s, i) => (
               <React.Fragment key={s}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                  step === s ? 'bg-[#034289] text-white' :
-                  (['email', 'code', 'newPassword'].indexOf(step) > i) ? 'bg-[#4F8751] text-white' :
-                  'bg-[#D2E1D9] text-[#034289]/40'
+                  step === s ? 'bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] text-white shadow-lg shadow-[#1E3A8A]/25' :
+                  (['email', 'code', 'newPassword'].indexOf(step) > i) ? 'bg-gradient-to-br from-[#DC2626] to-[#EF4444] text-white shadow-lg shadow-[#DC2626]/25' :
+                  'bg-[#DBEAFE] text-[#1E3A8A]/40'
                 }`}>
                   {(['email', 'code', 'newPassword'].indexOf(step) > i) ? (
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -159,26 +159,26 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
                     </svg>
                   ) : i + 1}
                 </div>
-                {i < 2 && <div className={`flex-1 h-0.5 max-w-[40px] transition-all duration-300 ${(['email', 'code', 'newPassword'].indexOf(step) > i) ? 'bg-[#4F8751]' : 'bg-[#D2E1D9]'}`} />}
+                {i < 2 && <div className={`flex-1 h-0.5 max-w-[40px] transition-all duration-300 ${(['email', 'code', 'newPassword'].indexOf(step) > i) ? 'bg-[#DC2626]' : 'bg-[#DBEAFE]'}`} />}
               </React.Fragment>
             ))}
           </div>
 
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#034289] to-[#0459b7] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#1E3A8A]/25 gloss-in gdelay-1">
               <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-black text-[#034289] mb-2">
+            <h2 className="text-3xl font-black text-[#1E3A8A] mb-2 gloss-in gdelay-2">
               {step === 'email' && 'نسيت كلمة المرور؟'}
               {step === 'code' && 'أدخل رمز التحقق'}
               {step === 'newPassword' && 'كلمة مرور جديدة'}
             </h2>
-            <p className="text-[#034289]/60 text-sm">
+            <p className="text-[#1E3A8A]/60 text-sm gloss-in gdelay-3">
               {step === 'email' && 'أدخل بريدك الإلكتروني وسنرسل لك رمز إعادة التعيين'}
-              {step === 'code' && <>أرسلنا رمزاً إلى <span className="font-bold text-[#034289]">{email}</span></>}
+              {step === 'code' && <>أرسلنا رمزاً إلى <span className="font-bold text-[#1E3A8A]">{email}</span></>}
               {step === 'newPassword' && 'اختر كلمة مرور جديدة قوية'}
             </p>
           </div>
@@ -196,9 +196,9 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
           {step === 'email' && (
             <form onSubmit={handleSendCode} className="space-y-5">
               <div>
-                <label htmlFor="fp-email" className="block text-sm font-bold text-[#034289] mb-2">البريد الإلكتروني</label>
+                <label htmlFor="fp-email" className="block text-sm font-bold text-[#1E3A8A] mb-2">البريد الإلكتروني</label>
                 <div className="relative">
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#034289]/40">
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#1E3A8A]/40">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
@@ -209,14 +209,14 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
                     value={email}
                     onChange={e => { setEmail(e.target.value); setError(''); }}
                     placeholder="example@email.com"
-                    className="w-full pr-12 pl-4 py-3.5 bg-white border-2 border-[#D2E1D9] rounded-xl text-[#034289] placeholder:text-[#034289]/40 focus:border-[#4F8751] focus:ring-4 focus:ring-[#4F8751]/10 transition-all duration-300"
+                    className="w-full pr-12 pl-4 py-3.5 bg-[#F5F5F7] dark:bg-white/[0.06] border-2 border-transparent rounded-xl text-[#1E3A8A] placeholder:text-[#1E3A8A]/40 focus:bg-white focus:border-[#1E3A8A]/30 focus:outline-none transition-all duration-300"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full btn-primary py-4 text-lg font-bold text-white rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full btn-primary py-4 text-lg font-bold text-white rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed hover-shine"
               >
                 <span className="flex items-center justify-center gap-2">
                   {isLoading ? (
@@ -242,14 +242,14 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
                     onChange={e => handleCodeChange(i, e.target.value)}
                     onKeyDown={e => handleCodeKeyDown(i, e)}
                     aria-label={`الرقم ${i + 1} من رمز التحقق`}
-                    className="w-12 h-14 text-center text-2xl font-bold bg-white border-2 border-[#D2E1D9] rounded-xl text-[#034289] focus:border-[#4F8751] focus:ring-4 focus:ring-[#4F8751]/10 transition-all duration-200 outline-none"
+                    className="w-12 h-14 text-center text-2xl font-bold bg-[#F5F5F7] dark:bg-white/[0.06] rounded-xl border-2 border-transparent text-[#1E3A8A] focus:bg-white focus:border-[#1E3A8A]/30 focus:ring-0 transition-all duration-200 outline-none"
                   />
                 ))}
               </div>
               <button
                 type="submit"
                 disabled={code.join('').length < 6}
-                className="w-full btn-primary py-4 text-lg font-bold text-white rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed mb-4"
+                className="w-full btn-primary py-4 text-lg font-bold text-white rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed mb-4 hover-shine"
               >
                 التحقق من الرمز
               </button>
@@ -258,7 +258,7 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
                   type="button"
                   onClick={handleResend}
                   disabled={countdown > 0 || isLoading}
-                  className="text-[#4F8751] font-bold text-sm hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline cursor-pointer"
+                  className="text-[#DC2626] font-bold text-sm hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline cursor-pointer"
                 >
                   {isLoading ? 'جاري الإرسال...' : countdown > 0 ? `إعادة الإرسال بعد ${countdown}ث` : 'إعادة إرسال الرمز'}
                 </button>
@@ -270,9 +270,9 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
           {step === 'newPassword' && (
             <form onSubmit={handleResetPassword} className="space-y-5">
               <div>
-                <label htmlFor="new-pass" className="block text-sm font-bold text-[#034289] mb-2">كلمة المرور الجديدة</label>
+                <label htmlFor="new-pass" className="block text-sm font-bold text-[#1E3A8A] mb-2">كلمة المرور الجديدة</label>
                 <div className="relative">
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#034289]/40">
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#1E3A8A]/40">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
@@ -283,20 +283,20 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
                     value={newPassword}
                     onChange={e => { setNewPassword(e.target.value); setError(''); }}
                     placeholder="••••••••"
-                    className="w-full pr-12 pl-4 py-3.5 bg-white border-2 border-[#D2E1D9] rounded-xl text-[#034289] placeholder:text-[#034289]/40 focus:border-[#4F8751] focus:ring-4 focus:ring-[#4F8751]/10 transition-all duration-300"
+                    className="w-full pr-12 pl-4 py-3.5 bg-[#F5F5F7] dark:bg-white/[0.06] border-2 border-transparent rounded-xl text-[#1E3A8A] placeholder:text-[#1E3A8A]/40 focus:bg-white focus:border-[#1E3A8A]/30 focus:outline-none transition-all duration-300"
                   />
                 </div>
                 <div className="flex gap-1 mt-2">
                   {[1, 2, 3, 4].map(l => (
-                    <div key={l} className={`h-1 flex-1 rounded transition-all duration-300 ${strength >= l ? strengthColors[strength] : 'bg-[#D2E1D9]'}`} />
+                    <div key={l} className={`h-1 flex-1 rounded transition-all duration-300 ${strength >= l ? strengthColors[strength] : 'bg-[#DBEAFE]'}`} />
                   ))}
                 </div>
-                {newPassword && <p className="text-xs text-[#034289]/50 mt-1">كلمة مرور {strengthLabels[strength]}</p>}
+                {newPassword && <p className="text-xs text-[#1E3A8A]/50 mt-1">كلمة مرور {strengthLabels[strength]}</p>}
               </div>
               <div>
-                <label htmlFor="confirm-pass" className="block text-sm font-bold text-[#034289] mb-2">تأكيد كلمة المرور</label>
+                <label htmlFor="confirm-pass" className="block text-sm font-bold text-[#1E3A8A] mb-2">تأكيد كلمة المرور</label>
                 <div className="relative">
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#034289]/40">
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#1E3A8A]/40">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -307,14 +307,14 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
                     value={confirmPassword}
                     onChange={e => { setConfirmPassword(e.target.value); setError(''); }}
                     placeholder="••••••••"
-                    className="w-full pr-12 pl-4 py-3.5 bg-white border-2 border-[#D2E1D9] rounded-xl text-[#034289] placeholder:text-[#034289]/40 focus:border-[#4F8751] focus:ring-4 focus:ring-[#4F8751]/10 transition-all duration-300"
+                    className="w-full pr-12 pl-4 py-3.5 bg-[#F5F5F7] dark:bg-white/[0.06] border-2 border-transparent rounded-xl text-[#1E3A8A] placeholder:text-[#1E3A8A]/40 focus:bg-white focus:border-[#1E3A8A]/30 focus:outline-none transition-all duration-300"
                   />
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full btn-primary py-4 text-lg font-bold text-white rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full btn-primary py-4 text-lg font-bold text-white rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed hover-shine"
               >
                 <span className="flex items-center justify-center gap-2">
                   {isLoading ? (
@@ -328,7 +328,7 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNavigate }) =
           <div className="text-center mt-6">
             <button
               onClick={() => onNavigate('login')}
-              className="text-[#034289]/50 text-sm hover:text-[#034289] transition-colors duration-200 cursor-pointer"
+              className="text-[#1E3A8A]/50 text-sm hover:text-[#1E3A8A] transition-colors duration-200 cursor-pointer"
             >
               العودة إلى تسجيل الدخول
             </button>

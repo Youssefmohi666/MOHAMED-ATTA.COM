@@ -33,8 +33,8 @@ export interface AccountingStats {
 }
 
 // ── LocalStorage helpers ───────────────────────────────────────
-const ADMIN_KEY = 'elmanassa_transactions';
-const TEACHER_KEY = 'elmanassa_teacher_transactions';
+const ADMIN_KEY = 'mohamedatta_transactions';
+const TEACHER_KEY = 'mohamedatta_teacher_transactions';
 
 function loadLocal(key: string): Transaction[] {
     try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
@@ -231,7 +231,7 @@ export function detectCurrency(phoneNumber?: string): Currency {
 
 export function formatCurrency(amount: number, currency: Currency): string {
     if (currency === 'EGP') return `${amount.toLocaleString('ar-EG')} ج.م`;
-    return `${amount.toLocaleString('ar-SA')} ر.س`;
+    return `${amount.toLocaleString('ar-SA')} ج.م`;
 }
 
 export function computeStats(txs: Transaction[]): AccountingStats {

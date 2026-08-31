@@ -1,6 +1,6 @@
 import React from 'react';
 import { Page } from '../App';
-import Logo from './Logo';
+import { WHATSAPP_FALLBACK_NUMBER } from '../constants';
 
 interface FooterProps {
   onNavigate?: (page: Page) => void;
@@ -11,9 +11,10 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
   const quickLinks: { name: string; page: Page }[] = [
     { name: 'الرئيسية', page: 'home' },
-    { name: 'الكورسات', page: 'courses' },
+    { name: 'الدورات', page: 'courses' },
     { name: 'التسعير', page: 'pricing' },
     { name: 'تواصل معنا', page: 'contact' },
+    { name: 'المساعد الذكي', page: 'ai' },
   ];
 
   const socialLinks = [
@@ -44,51 +45,32 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         </svg>
       ),
     },
-    {
-      name: 'LinkedIn',
-      href: '#',
-      icon: (
-        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true">
-          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-        </svg>
-      ),
-    },
   ];
 
   return (
-    <footer dir="rtl" className="relative bg-[#0a1628] text-[#d7e3fc] overflow-hidden">
-      {/* Top gradient accent line */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-l from-[#4F8751]/60 via-[#034289]/80 to-[#4F8751]/60"
-        aria-hidden="true"
-      />
+    <footer dir="rtl" className="relative bg-[#0f172a] text-white overflow-hidden">
+      {/* Top accent — sharp red line, NOT gradient */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-[#DC2626]" aria-hidden="true" />
 
-      {/* Ambient background glows */}
+      {/* NO blobs — geometric pattern */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#034289]/8 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#4F8751]/6 rounded-full blur-3xl -translate-x-1/3 translate-y-1/3" />
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
       </div>
 
       <div className="container mx-auto px-6 lg:px-12 relative z-10">
-        {/* Main three-column grid: logo+desc (right) | nav links (center) | contact (left) */}
         <div className="py-16 grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-16">
-
-          {/* Column 1 — Right in RTL: Logo + Description + Social icons */}
-          <div>
-            <Logo size="lg" className="mb-5" />
-            <p
-              className="text-[#c3c6d2] text-sm mb-6"
-              style={{ lineHeight: '1.85' }}
-            >
-              منصة تعليمية عربية رائدة توفر كورسات احترافية وبث مباشر واختبارات متقدمة لتطوير مهاراتك وبناء مستقبلك.
+          {/* Column 1 — Logo + Description */}
+          <div className="gloss-in gdelay-1">
+            <p className="text-white/50 text-sm mb-6 leading-relaxed">
+              الأستاذ محمد عطا — متخصص في تدريس مادة Science من الرابع الابتدائي حتى الأول الثانوي.
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
                   aria-label={social.name}
-                  className="w-9 h-9 rounded-lg bg-[#142032] hover:bg-[#034289] flex items-center justify-center text-[#8d909c] hover:text-white cursor-pointer transition-colors duration-200"
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:bg-gradient-to-br hover:from-[#DC2626] hover:to-[#EF4444] hover:border-transparent hover:shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] flex items-center justify-center text-white/50 hover:text-white cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
                 >
                   {social.icon}
                 </a>
@@ -96,125 +78,96 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Column 2 — Center: Navigation Links */}
-          <div>
-            <h3 className="font-bold text-[#d7e3fc] text-base mb-6 tracking-wide">
+          {/* Column 2 — Navigation Links */}
+          <div className="gloss-in gdelay-2">
+            <h3 className="font-black text-white text-base mb-6 tracking-wide">
               روابط سريعة
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.name}>
                   <button
                     type="button"
                     onClick={() => onNavigate && onNavigate(link.page)}
-                    className="group text-[#c3c6d2] hover:text-[#99d597] text-sm cursor-pointer transition-colors duration-200 inline-flex items-center"
+                    className="group text-white/50 hover:text-[#DC2626] text-sm cursor-pointer transition-colors duration-200 inline-flex items-center gap-2"
                   >
-                    <span className="relative">
-                      {link.name}
-                      <span className="absolute -bottom-0.5 right-0 h-0.5 w-0 bg-[#4F8751] group-hover:w-full transition-all duration-200 rounded-full" />
-                    </span>
+                    <span className="w-1 h-1 bg-white/20 group-hover:bg-[#DC2626] transition-colors" />
+                    {link.name}
                   </button>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Column 3 — Left in RTL: Contact Info */}
-          <div>
-            <h3 className="font-bold text-[#d7e3fc] text-base mb-6 tracking-wide">
+          {/* Column 3 — Contact Info */}
+          <div className="gloss-in gdelay-3">
+            <h3 className="font-black text-white text-base mb-6 tracking-wide">
               تواصل معنا
             </h3>
             <ul className="space-y-4">
               <li>
                 <a
-                  href="mailto:info@elmanassa.com"
-                  className="flex items-center gap-3 text-[#c3c6d2] hover:text-[#abc7ff] text-sm cursor-pointer transition-colors duration-200 group"
+                  href="mailto:info@mohamed-atta.com"
+                  className="flex items-center gap-3 text-white/50 hover:text-white text-sm cursor-pointer transition-colors duration-200 group"
                 >
-                  <span className="w-8 h-8 rounded-lg bg-[#034289]/20 flex items-center justify-center flex-shrink-0 group-hover:bg-[#034289]/40 transition-colors duration-200">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#abc7ff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="w-4 h-4"
-                      aria-hidden="true"
-                    >
+                  <span className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 group-hover:bg-gradient-to-br group-hover:from-[#DC2626] group-hover:to-[#EF4444] group-hover:border-transparent flex items-center justify-center flex-shrink-0 transition-all duration-200 group-hover:shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] group-hover:-translate-y-0.5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
                       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                       <polyline points="22,6 12,13 2,6" />
                     </svg>
                   </span>
-                  <span>info@elmanassa.com</span>
+                  <span>info@mohamed-atta.com</span>
                 </a>
               </li>
               <li>
                 <a
-                  href="tel:+966500000000"
-                  className="flex items-center gap-3 text-[#c3c6d2] hover:text-[#abc7ff] text-sm cursor-pointer transition-colors duration-200 group"
+                  href={`tel:+${WHATSAPP_FALLBACK_NUMBER}`}
+                  className="flex items-center gap-3 text-white/50 hover:text-white text-sm cursor-pointer transition-colors duration-200 group"
                 >
-                  <span className="w-8 h-8 rounded-lg bg-[#034289]/20 flex items-center justify-center flex-shrink-0 group-hover:bg-[#034289]/40 transition-colors duration-200">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#abc7ff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="w-4 h-4"
-                      aria-hidden="true"
-                    >
+                  <span className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 group-hover:bg-gradient-to-br group-hover:from-[#DC2626] group-hover:to-[#EF4444] group-hover:border-transparent flex items-center justify-center flex-shrink-0 transition-all duration-200 group-hover:shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] group-hover:-translate-y-0.5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.08 6.08l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
                     </svg>
                   </span>
-                  <span dir="ltr">+966 50 000 0000</span>
+                  <span dir="ltr">+{WHATSAPP_FALLBACK_NUMBER.replace(/(\d{3})(\d{2})(\d{4})/, '$1 $2 $3')}</span>
                 </a>
               </li>
               <li>
-                <div className="flex items-center gap-3 text-[#c3c6d2] text-sm">
-                  <span className="w-8 h-8 rounded-lg bg-[#034289]/20 flex items-center justify-center flex-shrink-0">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#abc7ff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="w-4 h-4"
-                      aria-hidden="true"
-                    >
+                <div className="flex items-center gap-3 text-white/50 text-sm">
+                  <span className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                       <circle cx="12" cy="10" r="3" />
                     </svg>
                   </span>
-                  <span>المملكة العربية السعودية</span>
+                  <span>مصر</span>
                 </div>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="h-px bg-[#434751]/40" />
+        {/* Divider — sharp, NOT subtle */}
+        <div className="h-px bg-white/10" />
 
         {/* Copyright bar */}
         <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-[#8d909c] text-sm text-center sm:text-right">
-            &copy; {currentYear} Elmanassa. جميع الحقوق محفوظة.
+          <p className="text-white/30 text-sm text-center sm:text-right">
+            &copy; {currentYear} محمد عطا. جميع الحقوق محفوظة.
           </p>
           <div className="flex items-center gap-4">
             <button
               type="button"
               onClick={() => onNavigate && onNavigate('privacy')}
-              className="text-[#8d909c] hover:text-[#c3c6d2] text-xs cursor-pointer transition-colors duration-200"
+              className="text-white/30 hover:text-white/60 text-xs cursor-pointer transition-colors duration-200"
             >
               سياسة الخصوصية
             </button>
-            <span className="text-[#434751]" aria-hidden="true">|</span>
+            <span className="text-white/10" aria-hidden="true">|</span>
             <button
               type="button"
               onClick={() => onNavigate && onNavigate('privacy')}
-              className="text-[#8d909c] hover:text-[#c3c6d2] text-xs cursor-pointer transition-colors duration-200"
+              className="text-white/30 hover:text-white/60 text-xs cursor-pointer transition-colors duration-200"
             >
               الشروط والأحكام
             </button>

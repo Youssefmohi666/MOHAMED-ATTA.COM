@@ -1,14 +1,17 @@
 {
-  "name": "elmanssa-education-platform",
+  "name": "mohamed-atta-education-platform",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/generate-sitemap.mjs && vite build",
+    "postbuild": "node scripts/prerender.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seo:generate": "node scripts/generate-sitemap.mjs",
+    "seo:prerender": "node scripts/prerender.mjs"
   },
   "dependencies": {
     "autoprefixer": "^10.4.27",
@@ -29,6 +32,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
     "jsdom": "^29.0.0",
+    "puppeteer-core": "^24.43.1",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vitest": "^4.1.0"

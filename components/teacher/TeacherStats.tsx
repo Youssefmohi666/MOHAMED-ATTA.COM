@@ -41,14 +41,15 @@ const TeacherStats: React.FC<TeacherStatsProps> = ({ totalSubjects, totalStudent
                     background: s.bg, border: `1px solid ${s.border}`,
                     borderRadius: '14px', padding: '18px 16px',
                     display: 'flex', alignItems: 'center', gap: '14px',
-                    transition: 'transform 0.2s',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 }}
                     onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
                     onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
                 >
                     <div style={{
                         width: '44px', height: '44px', borderRadius: '12px',
-                        background: 'rgba(255,255,255,0.05)',
+                        background: '#ffffff',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
                         {s.icon}

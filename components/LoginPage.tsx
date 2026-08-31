@@ -10,6 +10,7 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [centerMode, setCenterMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -220,6 +221,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
           <div className="flex items-center gap-3 my-7" aria-hidden="true">
             <div className="flex-1 h-px bg-[#c3c6d2]" />
             <span className="text-xs text-[#737782]">أو</span>
+            <button
+              type="button"
+              onClick={() => setCenterMode(!centerMode)}
+              className="text-xs text-[#034289] font-medium cursor-pointer transition-colors duration-200 hover:text-[#002c61] underline-offset-2 hover:underline"
+            >
+              هل انت كالب سنتر
+            </button>
             <div className="flex-1 h-px bg-[#c3c6d2]" />
           </div>
 

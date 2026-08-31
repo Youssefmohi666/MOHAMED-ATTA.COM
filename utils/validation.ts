@@ -1,6 +1,6 @@
 /**
  * Input Validation and Sanitization Utilities
- * Client-side validation for Elmanssa Education Platform
+ * Client-side validation for Mohamed Atta Education Platform
  */
 
 // Maximum lengths for various input types

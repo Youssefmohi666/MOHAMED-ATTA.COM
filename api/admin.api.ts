@@ -220,25 +220,6 @@ export const deleteOrder = (id: string) => {
   return apiRequest(`/admin/orders/${encodeURIComponent(id)}`, { method: "DELETE" });
 };
 
-// ── Streams ────────────────────────────────────────────────────
-export const getAdminStreams = (page = 1, search?: string) => {
-  const params = new URLSearchParams();
-  params.append("page", String(Math.max(1, Math.floor(page) || 1)));
-  params.append("perPage", "20");
-  if (search) {
-    const sanitizedSearch = sanitizeSearchQuery(search);
-    if (sanitizedSearch) params.append("search", sanitizedSearch);
-  }
-  return apiRequest(`/admin/streams?${params}`);
-};
-export const deleteStream = (id: string | number) => {
-  // Validate ID
-  if (!validateGuid(String(id)) && !validateNumericId(id)) {
-    throw new Error('معرف البث غير صالح');
-  }
-  return apiRequest(`/admin/streams/${encodeURIComponent(String(id))}`, { method: "DELETE" });
-};
-
 // ── Users (create any role) ────────────────────────────────────
 export const createUser = (data: { name: string; email: string; password: string; role: string; phoneNumber?: string; bio?: string }) => {
   // Validate email

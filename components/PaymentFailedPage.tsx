@@ -9,7 +9,7 @@ const PaymentFailedPage: React.FC<PaymentFailedPageProps> = ({ onNavigate }) => 
     const ref = new URLSearchParams(window.location.search).get('ref');
 
     return (
-        <div dir="rtl" className="bg-[#F8FAFA] min-h-screen flex items-center justify-center py-20 px-4" style={{ fontFamily: "'Cairo', sans-serif" }}>
+        <div dir="rtl" className="bg-[#FAF6EB] min-h-screen flex items-center justify-center py-20 px-4" style={{ fontFamily: "'Cairo', sans-serif" }}>
             <div className="bg-white rounded-3xl shadow-xl border border-red-100 p-10 text-center max-w-md w-full">
                 {/* Icon */}
                 <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -18,11 +18,11 @@ const PaymentFailedPage: React.FC<PaymentFailedPageProps> = ({ onNavigate }) => 
                     </svg>
                 </div>
 
-                <h1 className="text-2xl font-black text-[#034289] mb-2">فشلت عملية الدفع</h1>
-                <p className="text-[#034289]/60 mb-2">لم تتم عملية الدفع بنجاح. يرجى المحاولة مرة أخرى.</p>
+                <h1 className="text-2xl font-black text-[#1E3A8A] mb-2">فشلت عملية الدفع</h1>
+                <p className="text-[#1E3A8A]/60 mb-2">لم تتم عملية الدفع بنجاح. يرجى المحاولة مرة أخرى.</p>
 
                 {ref && (
-                    <p className="text-xs text-[#034289]/40 font-mono mb-6" dir="ltr">ref: {ref}</p>
+                    <p className="text-xs text-[#1E3A8A]/40 font-mono mb-6" dir="ltr">ref: {ref}</p>
                 )}
 
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-right">
@@ -38,23 +38,23 @@ const PaymentFailedPage: React.FC<PaymentFailedPageProps> = ({ onNavigate }) => 
                 <div className="flex flex-col gap-3">
                     <button
                         onClick={() => onNavigate('courses')}
-                        className="w-full py-4 bg-[#034289] hover:bg-[#034289]/90 text-white font-bold rounded-xl transition-colors cursor-pointer"
+                        className="w-full py-4 bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white font-bold rounded-xl transition-colors cursor-pointer"
                     >
                         حاول مرة أخرى
                     </button>
                     <button
                         onClick={() => onNavigate('home')}
-                        className="w-full py-4 border-2 border-[#D2E1D9] text-[#034289] font-bold rounded-xl hover:bg-[#F8FAFA] transition-colors cursor-pointer"
+                        className="w-full py-4 border-2 border-[#DBEAFE] text-[#1E3A8A] font-bold rounded-xl hover:bg-[#F8FAFA] transition-colors cursor-pointer"
                     >
                         العودة للرئيسية
                     </button>
                 </div>
 
-                <p className="text-xs text-[#034289]/40 mt-6">
+                <p className="text-xs text-[#1E3A8A]/40 mt-6">
                     إذا استمرت المشكلة، تواصل مع{' '}
                     <button
                         onClick={() => onNavigate('contact')}
-                        className="text-[#4F8751] underline cursor-pointer"
+                        className="text-[#DC2626] underline cursor-pointer"
                     >
                         الدعم الفني
                     </button>

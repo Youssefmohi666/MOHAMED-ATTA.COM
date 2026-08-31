@@ -1,9 +1,9 @@
 import { createOrder } from "../api/orders.api";
 
-export async function simulatePayment(courseId: number) {
+export async function simulatePayment(subjectId: string) {
     // 1. Call the backend to create an order
     const order = await createOrder({
-        courseId,
+        subjectId,
         paymentMethod: "mock",
         billingFullName: "",
         billingEmail: ""

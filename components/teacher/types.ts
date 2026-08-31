@@ -42,28 +42,26 @@ export interface Subject {
     category?: string;
     price?: number;
     level?: string;
+    grade?: string;
+    term?: string;
     levels: Level[];
     students: number;
     status: 'published' | 'draft';
     createdAt: string;
 }
 
-export type TeacherNavItem = 'dashboard' | 'subjects' | 'students' | 'analytics' | 'profile' | 'accounting';
+export type TeacherNavItem = 'dashboard' | 'subjects' | 'students' | 'analytics' | 'profile' | 'accounting' | 'exams' | 'bank' | 'attendance';
 
 // Category to Icon mapping
 export const categoryIcons: Record<string, string> = {
     'عام': '📚',
     'رياضيات': '📐',
     'علوم': '🧪',
+    'العلوم المتكاملة': '🧬',
     'لغة عربية': '✍️',
     'لغة إنجليزية': '🌍',
-    'فيزياء': '⚡',
-    'كيمياء': '🧪',
-    'أحياء': '🧬',
-    'تاريخ': '📜',
-    'جغرافيا': '🌍',
+    'علوم الحاسب': '💻',
     'برمجة': '💻',
     'فنون': '🎨',
     'تربية دينية': '🕌',
-    'ذكاء اصطناعي': '🤖',
 };

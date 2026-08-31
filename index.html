@@ -6,30 +6,71 @@
   <link rel="icon" type="image/svg+xml" href="/assets/logo.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- SEO Meta Tags -->
-  <title>المنصة | Elmanssa - منصة تعليمية عربية متكاملة</title>
+<!-- Primary Meta Tags -->
+  <title>محمد عطا | شرح Science</title>
+  <meta name="title" content="محمد عطا | شرح Science" />
   <meta name="description"
-    content="منصة تعليمية عربية رائدة توفر دورات احترافية، بث مباشر تفاعلي، واختبارات متقدمة. انضم إلى أكثر من 10,000 طالب و500 مدرس محترف." />
-  <meta name="keywords" content="تعليم, دورات, منصة تعليمية, تعلم عربي, كورسات, بث مباشر, اختبارات" />
-  <meta name="author" content="Elmanssa" />
+    content="محمد عطا لتعليم مادة Science للصفوف من الرابع الابتدائي حتى الأول الثانوي. شرح مبسط، تجارب علمية، امتحانات، وخطة دراسية مخصصة." />
+  <meta name="keywords" content="محمد عطا, Science, تعليم, مدرس, تجارب علمية, امتحانات, الرابع الابتدائي, الأول الثانوي" />
+  <meta name="author" content="Mohamed Atta" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#1E3A8A" />
+  <meta name="color-scheme" content="light" />
+  <meta name="language" content="Arabic" />
+  <meta name="geo.region" content="SA" />
+  <meta name="geo.placename" content="Saudi Arabia" />
 
-  <!-- Open Graph / Social Media -->
+  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="المنصة | Elmanssa - منصة تعليمية عربية متكاملة" />
+  <meta property="og:locale" content="ar_SA" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:site_name" content="محمد عطا" />
+  <meta property="og:url" content="https://mohamed-atta.com/" />
+  <meta property="og:title" content="محمد عطا | شرح Science" />
   <meta property="og:description"
-    content="منصة تعليمية عربية رائدة توفر دورات احترافية، بث مباشر تفاعلي، واختبارات متقدمة." />
-  <meta property="og:image" content="/assets/logo.svg" />
+    content="محمد عطا لتعليم مادة Science للصفوف من الرابع الابتدائي حتى الأول الثانوي." />
+  <meta property="og:image" content="https://mohamed-atta.com/assets/logo.svg" />
+  <meta property="og:image:alt" content="شعار محمد عطا" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="المنصة | Elmanssa" />
+  <meta name="twitter:title" content="محمد عطا | شرح Science" />
   <meta name="twitter:description"
-    content="منصة تعليمية عربية رائدة توفر دورات احترافية، بث مباشر تفاعلي، واختبارات متقدمة." />
+    content="محمد عطا لتعليم مادة Science للصفوف من الرابع الابتدائي حتى الأول الثانوي." />
+  <meta name="twitter:image" content="https://mohamed-atta.com/assets/logo.svg" />
 
-  <!-- Theme Color -->
-  <meta name="theme-color" content="#034289" />
-
-  <!-- Tailwind CSS is processed via PostCSS (see tailwind.config.js) -->
+  <!-- Structured Data: Organization + WebSite (baseline; extended at runtime) -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "محمد عطا",
+      "url": "https://mohamed-atta.com",
+      "logo": "https://mohamed-atta.com/assets/logo.svg",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+966597750868",
+        "contactType": "customer service",
+        "areaServed": "SA",
+        "availableLanguage": ["ar", "en"]
+      }
+    }
+  </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "محمد عطا",
+      "url": "https://mohamed-atta.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://mohamed-atta.com/courses?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  </script>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,17 +78,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet">
 
+  <!-- Preload critical assets -->
+  <link rel="preload" as="image" href="/assets/logo.svg" />
+
   <style>
     body {
       font-family: 'Cairo', sans-serif;
     }
 
-    /* Hide scrollbar while maintaining functionality */
     html {
       scroll-behavior: smooth;
     }
 
-    /* Improve text rendering */
     body {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;

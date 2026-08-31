@@ -7,7 +7,7 @@ export async function login(email: string, password: string) {
     return data;
 }
 
-export async function signup(payload: { name: string; email: string; password: string; role: string }) {
+export async function signup(payload: { name: string; email: string; password: string; role: string; phoneNumber: string; nationalId: string }) {
     const data = await signupApi(payload);
     if (data.token) setToken(data.token);
     return data;

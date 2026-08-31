@@ -29,7 +29,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
             `الاسم: ${formData.name}\nالبريد: ${formData.email}\nنوع الرسالة: ${formData.type}\n\n${formData.message}`
         );
         window.open(
-            `mailto:h8317918@gmail.com?subject=${encodeURIComponent(formData.subject)}&body=${body}`,
+            `mailto:info@mohamed-atta.com?subject=${encodeURIComponent(formData.subject)}&body=${body}`,
             '_blank'
         );
         setSubmitted(true);
@@ -44,11 +44,10 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                 </svg>
             ),
             title: 'البريد الإلكتروني',
-            detail: 'h8317918@gmail.com',
+            detail: 'info@mohamed-atta.com',
             desc: 'نرد خلال 24 ساعة',
-            color: 'from-blue-500/10 to-blue-600/10',
-            borderColor: 'border-blue-200',
-            textColor: 'text-blue-600',
+            iconBg: 'bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] shadow-lg shadow-[#1E3A8A]/25',
+            textColor: 'text-[#1E3A8A]',
         },
         {
             icon: (
@@ -57,11 +56,10 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                 </svg>
             ),
             title: 'الهاتف',
-            detail: '+966 50 123 4567',
+            detail: '+20 100 000 0000',
             desc: 'من الأحد إلى الخميس، 9ص - 6م',
-            color: 'from-green-500/10 to-green-600/10',
-            borderColor: 'border-green-200',
-            textColor: 'text-green-600',
+            iconBg: 'bg-gradient-to-br from-[#DC2626] to-[#EF4444] shadow-lg shadow-[#DC2626]/25',
+            textColor: 'text-[#DC2626]',
         },
         {
             icon: (
@@ -71,11 +69,10 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                 </svg>
             ),
             title: 'الموقع',
-            detail: 'الرياض، المملكة العربية السعودية',
+            detail: 'القاهرة، مصر',
             desc: 'مقرنا الرئيسي',
-            color: 'from-purple-500/10 to-purple-600/10',
-            borderColor: 'border-purple-200',
-            textColor: 'text-purple-600',
+            iconBg: 'bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] shadow-lg shadow-[#1E3A8A]/25',
+            textColor: 'text-[#1E3A8A]',
         },
         {
             icon: (
@@ -86,26 +83,25 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
             title: 'الدردشة المباشرة',
             detail: 'ابدأ محادثة الآن',
             desc: 'متاح على مدار الساعة',
-            color: 'from-amber-500/10 to-amber-600/10',
-            borderColor: 'border-amber-200',
-            textColor: 'text-amber-600',
+            iconBg: 'bg-gradient-to-br from-[#DC2626] to-[#1E3A8A] shadow-lg shadow-[#DC2626]/25',
+            textColor: 'text-[#DC2626]',
         },
     ];
 
     return (
-        <div dir="rtl" className="bg-gradient-to-b from-[#F0F4F8] to-[#FEFEFE] min-h-screen font-cairo">
+        <div dir="rtl" className="bg-gradient-to-b from-[#FAF3E2] to-[#FAF6EB] min-h-screen font-cairo">
             {/* Hero Section */}
-            <div className="bg-gradient-to-l from-[#034289] to-[#022a5c] text-white py-16 px-4 relative overflow-hidden">
+            <div className="bg-gradient-to-l from-[#1E3A8A] to-[#1e2a5c] text-white py-16 px-4 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-[#4F8751] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-[#DC2626] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
                     <div className="absolute bottom-0 left-0 w-72 h-72 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/3" />
                 </div>
                 <div className="container mx-auto max-w-5xl relative z-10 text-center">
-                    <span className="inline-block bg-white/10 backdrop-blur-sm text-white font-bold text-sm px-5 py-2 rounded-full mb-6 border border-white/20">
+                    <span className="inline-block bg-white/10 backdrop-blur-sm text-white font-bold text-sm px-5 py-2 rounded-full mb-6 border border-white/20 gloss-in gdelay-1">
                         تواصل معنا
                     </span>
-                    <h1 className="text-4xl md:text-5xl font-black mb-4">نحن هنا <span className="text-[#6ba96d]">لمساعدتك</span></h1>
-                    <p className="text-white/70 text-lg max-w-2xl mx-auto">
+                    <h1 className="text-4xl md:text-5xl font-black mb-4 gloss-in gdelay-2">نحن هنا <span className="text-[#EF4444]">لمساعدتك</span></h1>
+                    <p className="text-white/70 text-lg max-w-2xl mx-auto gloss-in gdelay-3">
                         لديك سؤال أو استفسار؟ فريقنا جاهز لمساعدتك في أي وقت. تواصل معنا عبر أي من القنوات التالية.
                     </p>
                 </div>
@@ -117,14 +113,14 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                     {contactMethods.map((method, idx) => (
                         <div
                             key={idx}
-                            className={`bg-white rounded-2xl p-6 shadow-lg border ${method.borderColor} hover:shadow-xl transition-all duration-200 hover:-translate-y-1 cursor-pointer group`}
+                            className={`gloss-card p-6 hover:-translate-y-1 cursor-pointer group reveal reveal-delay-${idx % 4 + 1}`}
                         >
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${method.color} flex items-center justify-center mb-4 ${method.textColor} group-hover:scale-110 transition-transform`}>
+                            <div className={`w-12 h-12 rounded-2xl ${method.iconBg} flex items-center justify-center mb-4 text-white group-hover:scale-110 transition-transform`}>
                                 {method.icon}
                             </div>
-                            <h3 className="font-bold text-[#034289] mb-1">{method.title}</h3>
+                            <h3 className="font-bold text-[#1E3A8A] mb-1">{method.title}</h3>
                             <p className={`font-semibold text-sm ${method.textColor} mb-1`}>{method.detail}</p>
-                            <p className="text-xs text-[#034289]/40">{method.desc}</p>
+                            <p className="text-xs text-[#1E3A8A]/40">{method.desc}</p>
                         </div>
                     ))}
                 </div>
@@ -135,25 +131,25 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
                     {/* Contact Form */}
                     <div className="lg:col-span-3">
-                        <div className="bg-white rounded-3xl shadow-lg border border-[#D2E1D9]/30 p-8 md:p-10">
-                            <h2 className="text-2xl font-black text-[#034289] mb-2">أرسل رسالتك</h2>
-                            <p className="text-[#034289]/50 mb-8">سنتواصل معك في أقرب وقت ممكن</p>
+                        <div className="gloss-card p-8 md:p-10">
+                            <h2 className="text-2xl font-black text-[#1E3A8A] mb-2">أرسل رسالتك</h2>
+                            <p className="text-[#1E3A8A]/50 mb-8">سنتواصل معك في أقرب وقت ممكن</p>
 
                             {submitted ? (
                                 <div className="text-center py-12 animate-fade-in-up">
-                                    <div className="w-20 h-20 bg-[#4F8751]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <svg className="w-10 h-10 text-[#4F8751]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div className="w-20 h-20 bg-[#DC2626]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <svg className="w-10 h-10 text-[#DC2626]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-[#034289] mb-2">تم إرسال رسالتك بنجاح! ✉️</h3>
-                                    <p className="text-[#034289]/50">سيتم الرد عليك خلال 24 ساعة عمل</p>
+                                    <h3 className="text-2xl font-bold text-[#1E3A8A] mb-2">تم إرسال رسالتك بنجاح! ✉️</h3>
+                                    <p className="text-[#1E3A8A]/50">سيتم الرد عليك خلال 24 ساعة عمل</p>
                                 </div>
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     {/* Message Type */}
                                     <div>
-                                        <label className="block text-sm font-bold text-[#034289] mb-3">نوع الرسالة</label>
+                                        <label className="block text-sm font-bold text-[#1E3A8A] mb-3">نوع الرسالة</label>
                                         <div className="flex flex-wrap gap-3">
                                             {[
                                                 { value: 'general', label: 'استفسار عام' },
@@ -166,8 +162,8 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, type: type.value })}
                                                     className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${formData.type === type.value
-                                                        ? 'bg-[#034289] text-white shadow-lg shadow-[#034289]/30'
-                                                        : 'bg-[#F0F6F2] text-[#034289]/60 hover:bg-[#D2E1D9] hover:text-[#034289]'
+                                                        ? 'bg-[#1E3A8A] text-white shadow-lg shadow-[#1E3A8A]/30'
+                                                        : 'bg-[#EFF6FF] text-[#1E3A8A]/60 hover:bg-[#DBEAFE] hover:text-[#1E3A8A]'
                                                         }`}
                                                 >
                                                     {type.label}
@@ -179,25 +175,25 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                                     {/* Name & Email */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-bold text-[#034289] mb-2">الاسم الكامل</label>
+                                            <label className="block text-sm font-bold text-[#1E3A8A] mb-2">الاسم الكامل</label>
                                             <input
                                                 type="text"
                                                 required
                                                 value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 placeholder="أدخل اسمك"
-                                                className="w-full px-5 py-3 rounded-xl border border-[#D2E1D9] bg-[#F8FAFA] text-[#034289] placeholder-[#034289]/30 focus:outline-none focus:border-[#4F8751] focus:ring-2 focus:ring-[#4F8751]/20 transition-all"
+                                                className="w-full px-5 py-3 bg-[#F5F5F7] dark:bg-white/[0.06] rounded-xl border-2 border-transparent focus:bg-white focus:border-[#1E3A8A]/30 text-[#1E3A8A] placeholder-[#1E3A8A]/30 focus:outline-none transition-all"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-[#034289] mb-2">البريد الإلكتروني</label>
+                                            <label className="block text-sm font-bold text-[#1E3A8A] mb-2">البريد الإلكتروني</label>
                                             <input
                                                 type="email"
                                                 required
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 placeholder="example@email.com"
-                                                className="w-full px-5 py-3 rounded-xl border border-[#D2E1D9] bg-[#F8FAFA] text-[#034289] placeholder-[#034289]/30 focus:outline-none focus:border-[#4F8751] focus:ring-2 focus:ring-[#4F8751]/20 transition-all"
+                                                className="w-full px-5 py-3 bg-[#F5F5F7] dark:bg-white/[0.06] rounded-xl border-2 border-transparent focus:bg-white focus:border-[#1E3A8A]/30 text-[#1E3A8A] placeholder-[#1E3A8A]/30 focus:outline-none transition-all"
                                                 dir="ltr"
                                             />
                                         </div>
@@ -205,27 +201,27 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
 
                                     {/* Subject */}
                                     <div>
-                                        <label className="block text-sm font-bold text-[#034289] mb-2">الموضوع</label>
+                                        <label className="block text-sm font-bold text-[#1E3A8A] mb-2">الموضوع</label>
                                         <input
                                             type="text"
                                             required
                                             value={formData.subject}
                                             onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                                             placeholder="عنوان الرسالة"
-                                            className="w-full px-5 py-3 rounded-xl border border-[#D2E1D9] bg-[#F8FAFA] text-[#034289] placeholder-[#034289]/30 focus:outline-none focus:border-[#4F8751] focus:ring-2 focus:ring-[#4F8751]/20 transition-all"
+                                            className="w-full px-5 py-3 bg-[#F5F5F7] dark:bg-white/[0.06] rounded-xl border-2 border-transparent focus:bg-white focus:border-[#1E3A8A]/30 text-[#1E3A8A] placeholder-[#1E3A8A]/30 focus:outline-none transition-all"
                                         />
                                     </div>
 
                                     {/* Message */}
                                     <div>
-                                        <label className="block text-sm font-bold text-[#034289] mb-2">الرسالة</label>
+                                        <label className="block text-sm font-bold text-[#1E3A8A] mb-2">الرسالة</label>
                                         <textarea
                                             required
                                             rows={5}
                                             value={formData.message}
                                             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                             placeholder="اكتب رسالتك هنا..."
-                                            className="w-full px-5 py-3 rounded-xl border border-[#D2E1D9] bg-[#F8FAFA] text-[#034289] placeholder-[#034289]/30 focus:outline-none focus:border-[#4F8751] focus:ring-2 focus:ring-[#4F8751]/20 transition-all resize-none"
+                                            className="w-full px-5 py-3 bg-[#F5F5F7] dark:bg-white/[0.06] rounded-xl border-2 border-transparent focus:bg-white focus:border-[#1E3A8A]/30 text-[#1E3A8A] placeholder-[#1E3A8A]/30 focus:outline-none transition-all resize-none"
                                         />
                                     </div>
 
@@ -249,8 +245,8 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                     {/* Sidebar */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Quick Help */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-[#D2E1D9]/30 p-6">
-                            <h3 className="text-lg font-bold text-[#034289] mb-4">🔗 روابط مفيدة</h3>
+                        <div className="gloss-card p-6">
+                            <h3 className="text-lg font-bold text-[#1E3A8A] mb-4">🔗 روابط مفيدة</h3>
                             <div className="space-y-3">
                                 {[
                                     { label: 'مركز المساعدة', page: 'support' as Page, icon: '📖' },
@@ -261,11 +257,11 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                                     <button
                                         key={idx}
                                         onClick={() => onNavigate(link.page)}
-                                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F0F6F2] transition-colors duration-200 text-right group cursor-pointer"
+                                        className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#EFF6FF] transition-colors duration-200 text-right group cursor-pointer"
                                     >
                                         <span className="text-xl">{link.icon}</span>
-                                        <span className="text-[#034289] font-medium group-hover:text-[#4F8751] transition-colors">{link.label}</span>
-                                        <svg className="w-4 h-4 text-[#D2E1D9] mr-auto group-hover:text-[#4F8751] group-hover:-translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <span className="text-[#1E3A8A] font-medium group-hover:text-[#DC2626] transition-colors">{link.label}</span>
+                                        <svg className="w-4 h-4 text-[#DBEAFE] mr-auto group-hover:text-[#DC2626] group-hover:-translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                         </svg>
                                     </button>
@@ -274,8 +270,8 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                         </div>
 
                         {/* Social Media */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-[#D2E1D9]/30 p-6">
-                            <h3 className="text-lg font-bold text-[#034289] mb-4">📱 تابعنا</h3>
+                        <div className="gloss-card p-6">
+                            <h3 className="text-lg font-bold text-[#1E3A8A] mb-4">📱 تابعنا</h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {[
                                     { name: 'تويتر', icon: '𝕏', color: 'bg-gray-900' },
@@ -295,7 +291,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
                         </div>
 
                         {/* Working Hours */}
-                        <div className="bg-gradient-to-br from-[#034289] to-[#022a5c] rounded-2xl p-6 text-white shadow-xl">
+                        <div className="bg-gradient-to-br from-[#1E3A8A] to-[#1e2a5c] rounded-2xl p-6 text-white shadow-xl">
                             <h3 className="text-lg font-bold mb-4">🕐 ساعات العمل</h3>
                             <div className="space-y-3">
                                 {[

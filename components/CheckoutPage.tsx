@@ -85,7 +85,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) e.email = 'بريد إلكتروني غير صالح';
         if (paymentMethod === 'wallet') {
             if (!formData.phone.trim()) e.phone = 'رقم الهاتف مطلوب للدفع بالمحفظة';
-            else if (!/^01[0125][0-9]{8}$/.test(formData.phone)) e.phone = 'رقم هاتف مصري غير صالح';
+            else if (!/^01[0-9]{8,9}$/.test(formData.phone)) e.phone = 'رقم هاتف مصري غير صالح';
         }
         setErrors(e);
         return Object.keys(e).length === 0;
@@ -124,13 +124,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
     // Loading state while course data is being fetched
     if (!course) {
         return (
-            <div dir="rtl" className="min-h-screen flex items-center justify-center bg-[#F8FAFA]">
+            <div dir="rtl" className="min-h-screen flex items-center justify-center bg-[#FAF6EB]">
                 <div className="text-center">
                     <div className="relative w-16 h-16 mx-auto mb-4">
-                        <div className="absolute inset-0 rounded-full border-4 border-[#D2E1D9]" />
-                        <div className="absolute inset-0 rounded-full border-4 border-t-[#4F8751] animate-spin" />
+                        <div className="absolute inset-0 rounded-full border-4 border-[#DBEAFE]" />
+                        <div className="absolute inset-0 rounded-full border-4 border-t-[#DC2626] animate-spin" />
                     </div>
-                    <p className="text-[#034289]/60 text-sm">جارٍ تحميل بيانات الدورة...</p>
+                    <p className="text-[#1E3A8A]/60 text-sm">جارٍ تحميل بيانات الدورة...</p>
                 </div>
             </div>
         );
@@ -160,17 +160,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
         };
 
         return (
-            <div dir="rtl" className="min-h-screen flex items-center justify-center bg-[#F8FAFA] py-20 px-4">
-                <div className="bg-white rounded-2xl shadow-lg p-10 text-center max-w-md w-full">
-                    <div className="w-20 h-20 bg-[#4F8751]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckBadgeIcon className="w-10 h-10 text-[#4F8751]" />
+            <div dir="rtl" className="min-h-screen flex items-center justify-center bg-[#FAF6EB] py-20 px-4">
+                <div className="gloss-card gloss-in bg-white/80 dark:bg-[#0d1f33]/80 p-10 text-center max-w-md w-full">
+                    <div className="w-20 h-20 bg-gradient-to-br from-[#DC2626] to-[#EF4444] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#DC2626]/25">
+                        <CheckBadgeIcon className="w-10 h-10 text-white" />
                     </div>
-                    <h2 className="text-2xl font-bold text-[#034289] mb-3">هذه الدورة مجانية!</h2>
-                    <p className="text-[#034289]/60 mb-8">يمكنك البدء في التعلم الآن بدون أي تكاليف.</p>
+                    <h2 className="text-2xl font-bold text-[#1E3A8A] mb-3">هذه الدورة مجانية!</h2>
+                    <p className="text-[#1E3A8A]/60 mb-8">يمكنك البدء في التعلم الآن بدون أي تكاليف.</p>
                     <button
                         onClick={handleFreeEnroll}
                         disabled={isProcessing}
-                        className="w-full py-4 bg-[#4F8751] hover:bg-[#3d6b3f] text-white font-bold rounded-xl text-lg cursor-pointer transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-gradient-to-l from-[#DC2626] to-[#EF4444] text-white font-bold rounded-xl text-lg shadow-[0_12px_30px_-8px_rgba(220,38,38,0.6)] hover-shine cursor-pointer transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isProcessing ? (
                             <>
@@ -185,25 +185,25 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
     }
 
     return (
-        <div dir="rtl" className="bg-[#F8FAFA] min-h-screen pb-20">
+        <div dir="rtl" className="bg-[#FAF6EB] min-h-screen pb-20">
 
             {/* Processing Overlay */}
             {isProcessing && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
                     <div className="bg-white rounded-2xl p-10 text-center max-w-sm mx-4 shadow-2xl">
                         <div className="relative w-16 h-16 mx-auto mb-6">
-                            <div className="absolute inset-0 rounded-full border-4 border-[#D2E1D9]" />
-                            <div className="absolute inset-0 rounded-full border-4 border-t-[#4F8751] animate-spin" />
+                            <div className="absolute inset-0 rounded-full border-4 border-[#DBEAFE]" />
+                            <div className="absolute inset-0 rounded-full border-4 border-t-[#DC2626] animate-spin" />
                         </div>
-                        <h3 className="text-xl font-bold text-[#034289] mb-2">جارٍ تجهيز الدفع...</h3>
-                        <p className="text-[#034289]/60 text-sm">سيتم تحويلك لصفحة الدفع الآمنة</p>
+                        <h3 className="text-xl font-bold text-[#1E3A8A] mb-2">جارٍ تجهيز الدفع...</h3>
+                        <p className="text-[#1E3A8A]/60 text-sm">سيتم تحويلك لصفحة الدفع الآمنة</p>
                     </div>
                 </div>
             )}
 
             {/* Page Header */}
-            <div className="bg-[#034289] text-white py-8 relative overflow-hidden">
-                <div className="absolute -top-16 -left-16 w-56 h-56 bg-[#4F8751]/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="bg-[#1E3A8A] text-white py-8 relative overflow-hidden">
+                <div className="absolute -top-16 -left-16 w-56 h-56 bg-[#DC2626]/15 rounded-full blur-3xl pointer-events-none" />
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="flex items-center gap-4">
                         <button
@@ -235,16 +235,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
 
                     {/* RIGHT COLUMN — Order Summary (renders first = right in RTL) */}
                     <div className="lg:col-span-1 order-first lg:order-none">
-                        <div className="bg-white rounded-2xl shadow-md p-6 sticky top-24">
+                        <div className="gloss-card gloss-in bg-white/80 dark:bg-[#0d1f33]/80 p-6 sticky top-24">
 
                             {/* Section heading */}
                             <div className="flex items-center gap-2 mb-5">
-                                <div className="w-8 h-8 bg-[#034289]/10 rounded-lg flex items-center justify-center">
-                                    <svg className="w-4 h-4 text-[#034289]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div className="w-8 h-8 bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] rounded-2xl flex items-center justify-center shadow-lg shadow-[#1E3A8A]/25">
+                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
                                 </div>
-                                <h3 className="font-bold text-[#034289] text-base">ملخص الطلب</h3>
+                                <h3 className="font-bold text-[#1E3A8A] text-base">ملخص الطلب</h3>
                             </div>
 
                             {/* Course info */}
@@ -256,9 +256,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                     onError={e => { (e.currentTarget as HTMLImageElement).src = '/assets/courses/default.png'; }}
                                 />
                                 <div className="min-w-0">
-                                    <p className="font-bold text-[#034289] text-sm line-clamp-2 leading-relaxed">{course.title}</p>
-                                    <p className="text-xs text-[#034289]/50 mt-1">{course.instructorName ?? 'معلم'}</p>
-                                    <div className="flex items-center gap-2 mt-1.5 text-xs text-[#034289]/50">
+                                    <p className="font-bold text-[#1E3A8A] text-sm line-clamp-2 leading-relaxed">{course.title}</p>
+                                    <p className="text-xs text-[#1E3A8A]/50 mt-1">{course.instructorName ?? 'معلم'}</p>
+                                    <div className="flex items-center gap-2 mt-1.5 text-xs text-[#1E3A8A]/50">
                                         <ClockIcon className="w-3.5 h-3.5 flex-shrink-0" />
                                         <span>{course.duration ?? 0} ساعة</span>
                                         <StarIcon className="w-3.5 h-3.5 text-yellow-400 fill-current flex-shrink-0" />
@@ -269,7 +269,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
 
                             {/* Coupon input */}
                             <div className="mb-5">
-                                <label htmlFor="coupon-input" className="block text-xs font-bold text-[#034289]/70 mb-2">
+                                <label htmlFor="coupon-input" className="block text-xs font-bold text-[#1E3A8A]/70 mb-2">
                                     كود الخصم
                                 </label>
                                 <div className="flex gap-2">
@@ -280,11 +280,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                         onChange={e => setCouponCode(e.target.value)}
                                         placeholder="أدخل الكود"
                                         dir="ltr"
-                                        className="flex-1 px-3 py-2 border border-[#D2E1D9] rounded-xl text-sm text-[#034289] focus:border-[#4F8751] focus:outline-none bg-[#F8FAFA] transition-colors duration-200"
+                                        className="flex-1 px-3 py-2 bg-[#F5F5F7] dark:bg-white/[0.06] rounded-xl text-sm text-[#1E3A8A] focus:bg-white focus:outline-none border-2 border-transparent focus:border-[#1E3A8A]/30 transition-colors duration-200"
                                     />
                                     <button
                                         onClick={applyCoupon}
-                                        className="px-4 py-2 bg-[#034289] hover:bg-[#023070] text-white text-sm font-bold rounded-xl transition-colors duration-200 cursor-pointer"
+                                        className="px-4 py-2 bg-gradient-to-l from-[#1E3A8A] to-[#3B82F6] hover-shine text-white text-sm font-bold rounded-xl shadow-lg shadow-[#1E3A8A]/25 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
                                     >
                                         تطبيق
                                     </button>
@@ -293,7 +293,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                     <p role="alert" className="text-red-500 text-xs mt-1.5">{couponError}</p>
                                 )}
                                 {couponApplied && (
-                                    <p className="text-[#4F8751] text-xs mt-1.5 font-bold flex items-center gap-1">
+                                    <p className="text-[#DC2626] text-xs mt-1.5 font-bold flex items-center gap-1">
                                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                                         </svg>
@@ -304,25 +304,25 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
 
                             {/* Pricing breakdown */}
                             <div className="space-y-2.5 text-sm">
-                                <div className="flex justify-between text-[#034289]/60">
+                                <div className="flex justify-between text-[#1E3A8A]/60">
                                     <span>سعر الدورة</span>
-                                    <span>{originalPrice.toLocaleString('ar-EG')} ج.م</span>
+                                    <span>{originalPrice.toLocaleString('ar-SA')} ج.م</span>
                                 </div>
                                 {discountAmount > 0 && (
-                                    <div className="flex justify-between text-[#4F8751]">
+                                    <div className="flex justify-between text-[#DC2626]">
                                         <span>الخصم</span>
-                                        <span>- {discountAmount.toLocaleString('ar-EG')} ج.م</span>
+                                        <span>- {discountAmount.toLocaleString('ar-SA')} ج.م</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between font-black text-[#034289] text-base pt-3 border-t border-[#F3F4F5]">
+                                <div className="flex justify-between font-black text-[#1E3A8A] text-base pt-3 border-t border-[#F3F4F5]">
                                     <span>الإجمالي</span>
-                                    <span className="text-[#4F8751] text-xl">{finalPrice.toLocaleString('ar-EG')} ج.م</span>
+                                    <span className="text-[#DC2626] text-xl">{finalPrice.toLocaleString('ar-SA')} ج.م</span>
                                 </div>
                             </div>
 
                             {/* Security badge */}
-                            <div className="mt-5 pt-4 border-t border-[#F3F4F5] flex items-center gap-2 text-xs text-[#034289]/40">
-                                <svg className="w-4 h-4 text-[#4F8751] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div className="mt-5 pt-4 border-t border-[#F3F4F5] flex items-center gap-2 text-xs text-[#1E3A8A]/40">
+                                <svg className="w-4 h-4 text-[#DC2626] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                                 الدفع مشفر وآمن عبر بوابة Paymob
@@ -334,23 +334,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                     <div className="lg:col-span-2 space-y-6">
 
                         {/* Billing Information Card */}
-                        <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+                        <div className="gloss-card gloss-in bg-white/80 dark:bg-[#0d1f33]/80 p-4 sm:p-6 md:p-8">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 bg-[#034289]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-5 h-5 text-[#034289]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div className="w-10 h-10 bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#1E3A8A]/25">
+                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-[#034289]">بيانات الفاتورة</h2>
-                                    <p className="text-xs text-[#034289]/50">ستُستخدم لإرسال تأكيد الطلب</p>
+                                    <h2 className="text-lg font-bold text-[#1E3A8A]">بيانات الفاتورة</h2>
+                                    <p className="text-xs text-[#1E3A8A]/50">ستُستخدم لإرسال تأكيد الطلب</p>
                                 </div>
                             </div>
 
                             <div className="space-y-5">
                                 {/* Full Name */}
                                 <div>
-                                    <label htmlFor="billing-fullname" className="block text-sm font-bold text-[#034289] mb-1.5">
+                                    <label htmlFor="billing-fullname" className="block text-sm font-bold text-[#1E3A8A] mb-1.5">
                                         الاسم الكامل <span className="text-red-500" aria-hidden="true">*</span>
                                     </label>
                                     <input
@@ -363,7 +363,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                         aria-required="true"
                                         aria-invalid={!!errors.fullName}
                                         aria-describedby={errors.fullName ? 'fullname-error' : undefined}
-                                        className={`w-full px-4 py-3 border-2 rounded-xl bg-[#F8FAFA] text-[#034289] placeholder-[#034289]/30 focus:bg-white focus:border-[#4F8751] outline-none transition-colors duration-200 ${errors.fullName ? 'border-red-400' : 'border-[#D2E1D9]'}`}
+                                        className={`w-full px-4 py-3 border-2 rounded-xl bg-[#F5F5F7] dark:bg-white/[0.06] text-[#1E3A8A] placeholder-[#1E3A8A]/30 focus:bg-white focus:outline-none transition-colors duration-200 ${errors.fullName ? 'border-red-400' : 'border-transparent focus:border-[#1E3A8A]/30'}`}
                                     />
                                     {errors.fullName && (
                                         <p id="fullname-error" role="alert" className="text-red-500 text-xs mt-1.5">{errors.fullName}</p>
@@ -372,7 +372,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
 
                                 {/* Email */}
                                 <div>
-                                    <label htmlFor="billing-email" className="block text-sm font-bold text-[#034289] mb-1.5">
+                                    <label htmlFor="billing-email" className="block text-sm font-bold text-[#1E3A8A] mb-1.5">
                                         البريد الإلكتروني <span className="text-red-500" aria-hidden="true">*</span>
                                     </label>
                                     <input
@@ -386,7 +386,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                         aria-required="true"
                                         aria-invalid={!!errors.email}
                                         aria-describedby={errors.email ? 'email-error' : undefined}
-                                        className={`w-full px-4 py-3 border-2 rounded-xl bg-[#F8FAFA] text-[#034289] placeholder-[#034289]/30 focus:bg-white focus:border-[#4F8751] outline-none transition-colors duration-200 ${errors.email ? 'border-red-400' : 'border-[#D2E1D9]'}`}
+                                        className={`w-full px-4 py-3 border-2 rounded-xl bg-[#F5F5F7] dark:bg-white/[0.06] text-[#1E3A8A] placeholder-[#1E3A8A]/30 focus:bg-white focus:outline-none transition-colors duration-200 ${errors.email ? 'border-red-400' : 'border-transparent focus:border-[#1E3A8A]/30'}`}
                                     />
                                     {errors.email && (
                                         <p id="email-error" role="alert" className="text-red-500 text-xs mt-1.5">{errors.email}</p>
@@ -395,11 +395,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
 
                                 {/* Phone */}
                                 <div>
-                                    <label htmlFor="billing-phone" className="block text-sm font-bold text-[#034289] mb-1.5">
+                                    <label htmlFor="billing-phone" className="block text-sm font-bold text-[#1E3A8A] mb-1.5">
                                         رقم الهاتف{' '}
                                         {paymentMethod === 'wallet'
                                             ? <span className="text-red-500" aria-hidden="true">*</span>
-                                            : <span className="text-[#034289]/40 font-normal text-xs">(اختياري)</span>
+                                            : <span className="text-[#1E3A8A]/40 font-normal text-xs">(اختياري)</span>
                                         }
                                     </label>
                                     <input
@@ -413,7 +413,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                         aria-required={paymentMethod === 'wallet'}
                                         aria-invalid={!!errors.phone}
                                         aria-describedby={errors.phone ? 'phone-error' : undefined}
-                                        className={`w-full px-4 py-3 border-2 rounded-xl bg-[#F8FAFA] text-[#034289] placeholder-[#034289]/30 focus:bg-white focus:border-[#4F8751] outline-none transition-colors duration-200 ${errors.phone ? 'border-red-400' : 'border-[#D2E1D9]'}`}
+                                        className={`w-full px-4 py-3 border-2 rounded-xl bg-[#F5F5F7] dark:bg-white/[0.06] text-[#1E3A8A] placeholder-[#1E3A8A]/30 focus:bg-white focus:outline-none transition-colors duration-200 ${errors.phone ? 'border-red-400' : 'border-transparent focus:border-[#1E3A8A]/30'}`}
                                     />
                                     {errors.phone && (
                                         <p id="phone-error" role="alert" className="text-red-500 text-xs mt-1.5">{errors.phone}</p>
@@ -423,16 +423,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                         </div>
 
                         {/* Payment Method Card */}
-                        <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+                        <div className="gloss-card gloss-in bg-white/80 dark:bg-[#0d1f33]/80 p-4 sm:p-6 md:p-8">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 bg-[#4F8751]/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-5 h-5 text-[#4F8751]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div className="w-10 h-10 bg-gradient-to-br from-[#DC2626] to-[#EF4444] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#DC2626]/25">
+                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-[#034289]">طريقة الدفع</h2>
-                                    <p className="text-xs text-[#034289]/50">ستُكمل بيانات الدفع على صفحة Paymob الآمنة</p>
+                                    <h2 className="text-lg font-bold text-[#1E3A8A]">طريقة الدفع</h2>
+                                    <p className="text-xs text-[#1E3A8A]/50">ستُكمل بيانات الدفع على صفحة Paymob الآمنة</p>
                                 </div>
                             </div>
 
@@ -444,19 +444,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                         type="button"
                                         onClick={() => setPaymentMethod('card')}
                                         aria-pressed={paymentMethod === 'card'}
-                                        className={`relative p-4 rounded-xl border-2 transition-colors duration-200 text-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4F8751] focus:ring-offset-2 ${paymentMethod === 'card' ? 'border-[#4F8751] bg-[#4F8751]/5' : 'border-[#D2E1D9] hover:border-[#4F8751]/50'}`}
+                                        className={`relative p-4 rounded-xl border-2 transition-colors duration-200 text-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#DC2626] focus:ring-offset-2 ${paymentMethod === 'card' ? 'border-[#DC2626] bg-[#DC2626]/5' : 'border-[#DBEAFE] hover:border-[#DC2626]/50'}`}
                                     >
                                         {paymentMethod === 'card' && (
-                                            <span className="absolute -top-2 -left-2 w-5 h-5 bg-[#4F8751] rounded-full flex items-center justify-center">
+                                            <span className="absolute -top-2 -left-2 w-5 h-5 bg-[#DC2626] rounded-full flex items-center justify-center">
                                                 <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                 </svg>
                                             </span>
                                         )}
-                                        <svg className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === 'card' ? 'text-[#4F8751]' : 'text-[#034289]/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === 'card' ? 'text-[#DC2626]' : 'text-[#1E3A8A]/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                         </svg>
-                                        <span className={`text-xs font-bold ${paymentMethod === 'card' ? 'text-[#4F8751]' : 'text-[#034289]/60'}`}>بطاقة ائتمان</span>
+                                        <span className={`text-xs font-bold ${paymentMethod === 'card' ? 'text-[#DC2626]' : 'text-[#1E3A8A]/60'}`}>بطاقة ائتمان</span>
                                     </button>
 
                                     {/* Mobile Wallet option */}
@@ -464,19 +464,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                         type="button"
                                         onClick={() => setPaymentMethod('wallet')}
                                         aria-pressed={paymentMethod === 'wallet'}
-                                        className={`relative p-4 rounded-xl border-2 transition-colors duration-200 text-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#4F8751] focus:ring-offset-2 ${paymentMethod === 'wallet' ? 'border-[#4F8751] bg-[#4F8751]/5' : 'border-[#D2E1D9] hover:border-[#4F8751]/50'}`}
+                                        className={`relative p-4 rounded-xl border-2 transition-colors duration-200 text-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#DC2626] focus:ring-offset-2 ${paymentMethod === 'wallet' ? 'border-[#DC2626] bg-[#DC2626]/5' : 'border-[#DBEAFE] hover:border-[#DC2626]/50'}`}
                                     >
                                         {paymentMethod === 'wallet' && (
-                                            <span className="absolute -top-2 -left-2 w-5 h-5 bg-[#4F8751] rounded-full flex items-center justify-center">
+                                            <span className="absolute -top-2 -left-2 w-5 h-5 bg-[#DC2626] rounded-full flex items-center justify-center">
                                                 <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                 </svg>
                                             </span>
                                         )}
-                                        <svg className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === 'wallet' ? 'text-[#4F8751]' : 'text-[#034289]/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className={`w-8 h-8 mx-auto mb-2 ${paymentMethod === 'wallet' ? 'text-[#DC2626]' : 'text-[#1E3A8A]/40'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                         </svg>
-                                        <span className={`text-xs font-bold ${paymentMethod === 'wallet' ? 'text-[#4F8751]' : 'text-[#034289]/60'}`}>محفظة إلكترونية</span>
+                                        <span className={`text-xs font-bold ${paymentMethod === 'wallet' ? 'text-[#DC2626]' : 'text-[#1E3A8A]/60'}`}>محفظة إلكترونية</span>
                                     </button>
                                 </div>
                             </fieldset>
@@ -487,7 +487,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                             type="button"
                             onClick={handleSubmit}
                             disabled={isProcessing}
-                            className="w-full py-4 bg-gradient-to-l from-[#034289] to-[#002c61] hover:from-[#023070] hover:to-[#001f4d] text-white font-bold rounded-xl text-lg shadow-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-3"
+                            className="w-full py-4 bg-gradient-to-l from-[#1E3A8A] to-[#1e2a5c] hover:from-[#023070] hover:to-[#001f4d] text-white font-bold rounded-xl text-lg shadow-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-3"
                         >
                             {isProcessing ? (
                                 <>
@@ -496,10 +496,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ courseId, onNavigate }) => 
                                 </>
                             ) : (
                                 <>
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
-                                    <span>ادفع {finalPrice.toLocaleString('ar-EG')} ج.م عبر Paymob</span>
+                                    <span className="text-sm sm:text-base">ادفع {finalPrice.toLocaleString('ar-SA')} ج.م عبر Paymob</span>
                                 </>
                             )}
                         </button>

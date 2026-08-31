@@ -33,7 +33,7 @@ const TeacherCTA: React.FC<TeacherCTAProps> = ({ onNavigate }) => {
       <div className={`cta-premium relative rounded-3xl overflow-hidden transform transition-all duration-700 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}>
         {/* Animated gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#034289] via-[#0459b7] to-[#034289] animate-gradient" style={{ backgroundSize: '200% 200%' }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] via-[#3B82F6] to-[#1E3A8A] animate-gradient" style={{ backgroundSize: '200% 200%' }} />
 
         {/* Decorative pattern overlay */}
         <div className="absolute inset-0 opacity-10">
@@ -43,7 +43,7 @@ const TeacherCTA: React.FC<TeacherCTAProps> = ({ onNavigate }) => {
         </div>
 
         {/* Floating decorative elements */}
-        <div className="absolute top-10 left-10 w-32 h-32 bg-[#4F8751]/20 rounded-full blur-2xl animate-pulse-gentle" />
+        <div className="absolute top-10 left-10 w-32 h-32 bg-[#DC2626]/20 rounded-full blur-2xl animate-pulse-gentle" />
         <div className="absolute bottom-10 right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl animate-pulse-gentle" style={{ animationDelay: '1s' }} />
 
         {/* Content */}
@@ -51,8 +51,8 @@ const TeacherCTA: React.FC<TeacherCTAProps> = ({ onNavigate }) => {
           {/* Badge */}
           <div className={`inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-6 transform transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}>
-            <span className="w-2 h-2 bg-[#4F8751] rounded-full animate-pulse" />
-            <span className="text-white/90 font-medium text-sm">انضم لأكثر من 500 مدرس</span>
+            <span className="w-2 h-2 bg-[#DC2626] rounded-full animate-pulse" />
+            <span className="text-white/90 font-medium text-sm">انضم لفريق المدرسين معانا</span>
           </div>
 
           {/* Heading */}
@@ -60,9 +60,9 @@ const TeacherCTA: React.FC<TeacherCTAProps> = ({ onNavigate }) => {
             }`}>
             هل أنت{' '}
             <span className="relative inline-block">
-              <span className="text-[#6ba96d]">مدرس</span>
+              <span className="text-[#EF4444]">مدرس علوم</span>
               <svg className="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 100 8" preserveAspectRatio="none">
-                <path d="M0,4 Q25,0 50,4 T100,4" fill="none" stroke="#6ba96d" strokeWidth="3" opacity="0.6" />
+                <path d="M0,4 Q25,0 50,4 T100,4" fill="none" stroke="#EF4444" strokeWidth="3" opacity="0.6" />
               </svg>
             </span>
             ؟
@@ -93,12 +93,12 @@ const TeacherCTA: React.FC<TeacherCTAProps> = ({ onNavigate }) => {
           {/* CTA Button */}
           <button
             onClick={() => onNavigate('signup', { accountType: 'teacher' })}
-            className={`group relative inline-flex items-center gap-3 px-10 py-5 bg-white text-[#034289] font-bold text-lg rounded-2xl shadow-2xl hover:shadow-glow transform hover:-translate-y-1 transition-all duration-300 overflow-hidden ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            className={`group relative inline-flex items-center gap-3 px-10 py-5 bg-white text-[#1E3A8A] font-bold text-lg rounded-2xl shadow-2xl hover:shadow-glow transform hover:-translate-y-1 transition-all duration-300 overflow-hidden ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             style={{ transitionDelay: '600ms' }}
           >
             {/* Button shine effect */}
-            <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-[#4F8751]/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <span className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-[#DC2626]/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
             <span className="relative z-10">ابدأ التدريس الآن</span>
             <svg className="w-5 h-5 relative z-10 transform rotate-180 group-hover:-translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">

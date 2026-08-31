@@ -98,24 +98,24 @@ const VerifyEmailPage: React.FC<VerifyEmailPageProps> = ({ email, onNavigate }) 
   return (
     <div dir="rtl" className="min-h-[80vh] flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ fontFamily: "'Cairo', sans-serif" }}>
       <div className="absolute inset-0">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#034289]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#4F8751]/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#1E3A8A]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-[#DC2626]/10 rounded-full blur-3xl" />
         <div className="absolute inset-0 dots-pattern opacity-20" />
       </div>
 
       <div className="relative w-full max-w-md animate-fade-in-up">
-        <div className="card-premium glass bg-white/90 p-8 md:p-10 rounded-3xl border border-[#D2E1D9]/50 shadow-2xl">
+        <div className="gloss-card gloss-in bg-white/80 dark:bg-[#0d1f33]/80 p-8 md:p-10">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#4F8751] to-[#6ba96d] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#DC2626] to-[#EF4444] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#DC2626]/25 gloss-in gdelay-1">
               <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-black text-[#034289] mb-2">تفعيل البريد الإلكتروني</h2>
-            <p className="text-[#034289]/60 text-sm leading-relaxed">
+            <h2 className="text-3xl font-black text-[#1E3A8A] mb-2 gloss-in gdelay-2">تفعيل البريد الإلكتروني</h2>
+            <p className="text-[#1E3A8A]/60 text-sm leading-relaxed gloss-in gdelay-3">
               أرسلنا رمز التحقق إلى
               <br />
-              <span className="font-bold text-[#034289]">{email}</span>
+              <span className="font-bold text-[#1E3A8A]">{email}</span>
             </p>
           </div>
 
@@ -141,7 +141,7 @@ const VerifyEmailPage: React.FC<VerifyEmailPageProps> = ({ email, onNavigate }) 
                   onChange={e => handleChange(i, e.target.value)}
                   onKeyDown={e => handleKeyDown(i, e)}
                   aria-label={`الرقم ${i + 1} من رمز التحقق`}
-                  className="w-12 h-14 text-center text-2xl font-bold bg-white border-2 border-[#D2E1D9] rounded-xl text-[#034289] focus:border-[#4F8751] focus:ring-4 focus:ring-[#4F8751]/10 transition-all duration-200 outline-none"
+                  className="w-12 h-14 text-center text-2xl font-bold bg-[#F5F5F7] dark:bg-white/[0.06] rounded-xl border-2 border-transparent text-[#1E3A8A] focus:bg-white focus:border-[#1E3A8A]/30 focus:ring-0 transition-all duration-200 outline-none"
                 />
               ))}
             </div>
@@ -149,7 +149,7 @@ const VerifyEmailPage: React.FC<VerifyEmailPageProps> = ({ email, onNavigate }) 
             <button
               type="submit"
               disabled={isLoading || code.join('').length < 6}
-              className="w-full btn-primary py-4 text-lg font-bold text-white rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full btn-primary py-4 text-lg font-bold text-white rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed hover-shine"
             >
               <span className="flex items-center justify-center gap-2">
                 {isLoading ? (
@@ -166,11 +166,11 @@ const VerifyEmailPage: React.FC<VerifyEmailPageProps> = ({ email, onNavigate }) 
           </form>
 
           <div className="text-center mt-6">
-            <p className="text-[#034289]/60 text-sm mb-2">لم تستلم الرمز؟</p>
+            <p className="text-[#1E3A8A]/60 text-sm mb-2">لم تستلم الرمز؟</p>
             <button
               onClick={handleResend}
               disabled={countdown > 0 || isResending}
-              className="text-[#4F8751] font-bold text-sm hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline cursor-pointer"
+              className="text-[#DC2626] font-bold text-sm hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline cursor-pointer"
             >
               {isResending ? 'جاري الإرسال...' : countdown > 0 ? `إعادة الإرسال بعد ${countdown}ث` : 'إعادة إرسال الرمز'}
             </button>
@@ -179,7 +179,7 @@ const VerifyEmailPage: React.FC<VerifyEmailPageProps> = ({ email, onNavigate }) 
           <div className="text-center mt-4">
             <button
               onClick={() => onNavigate('login')}
-              className="text-[#034289]/50 text-sm hover:text-[#034289] transition-colors duration-200 cursor-pointer"
+              className="text-[#1E3A8A]/50 text-sm hover:text-[#1E3A8A] transition-colors duration-200 cursor-pointer"
             >
               العودة إلى تسجيل الدخول
             </button>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Page } from '../App';
-import { fetchCourseById, fetchSubjectById } from '../services/api';
+import { fetchCourseById, fetchSubjectById } from '../api/courses.api';
 import { validateSession } from '../api/auth.api';
 import { getProgress } from '../api/student.api';
 import { useAuth } from '../contexts/AuthContext';
@@ -169,7 +169,7 @@ const VideoViewer: React.FC<VideoViewerProps> = ({ onNavigate, lectureData, cour
 
     const { user } = useAuth();
     const isRecording = useScreenProtection();
-    const watermarkLabel = user?.name || user?.email || 'elmanassa.com';
+    const watermarkLabel = user?.name || user?.email || 'mohamed-atta.com';
     const sessionId = useRef(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`).current;
 
     useEffect(() => {

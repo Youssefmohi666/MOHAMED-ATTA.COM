@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { AccountType } from '../App';
 import { API_BASE } from '../config/api.config';
-import { setToken, clearToken, setRefreshToken, getRefreshToken, clearAllTokens } from '../utils/token';
+import { setToken, clearToken, setRefreshToken, getRefreshToken, clearAllTokens, getToken, isTokenExpired } from '../utils/token';
 
 export interface User {
     id: string;
@@ -17,7 +17,12 @@ interface AuthContextType {
     isLoggedIn: boolean;
     login: (email: string, password: string) => Promise<{ requiresEmailVerification?: boolean; email?: string } | void>;
     loginWithTokens: (data: { token: string; refreshToken: string; userId: string; name: string; email: string; role: string }) => void;
-    signup: (name: string, email: string, password: string, role: AccountType, phoneNumber: string, nationalId: string) => Promise<void>;
+    signup: (data: {
+        name: string; email: string; password: string; role: AccountType;
+        phoneNumber: string; nationalId: string;
+        fatherName?: string; motherName?: string;
+        fatherPhoneNumber?: string; motherPhoneNumber?: string;
+    }) => Promise<void>;
     signupTeacher: (payload: {
         name: string; email: string; password: string; nationalId: string;
         phoneNumber: string; yearsOfExperience?: number; specialization?: string;
@@ -28,7 +33,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const STORAGE_KEY = 'elmanssa_auth_user';
+const STORAGE_KEY = 'mohamedatta_auth_user';
 
 function extractErrorMessage(data: any, fallback: string): string {
     if (data.errors && typeof data.errors === 'object') {
@@ -96,31 +101,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = useCallback(async (email: string, password: string) => {
-        const res = await fetch(`${API_BASE}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-        });
+        let res: Response;
+        try {
+            res = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+        } catch (fetchErr: any) {
+            if (fetchErr instanceof TypeError && fetchErr.message?.includes('Failed to fetch')) {
+                throw new Error('تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.');
+            }
+            throw new Error('حدث خطأ غير متوقع. حاول مرة أخرى.');
+        }
         const data = await res.json();
         // Email not verified — return signal to caller, don't throw
         if (!res.ok && data.requiresEmailVerification) {
             return { requiresEmailVerification: true, email: data.email || email };
         }
-        if (res.status === 401) throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة. تأكد من صحة بياناتك');
+        if (res.status === 401) throw new Error('رقم الهاتف أو كلمة المرور غير صحيحة. تأكد من صحة بياناتك');
         if (!res.ok || !data.success) throw new Error(extractErrorMessage(data, 'فشل تسجيل الدخول'));
         setUser(persistSession(data, email.split('@')[0], email, 'student'));
     }, []);
 
-    const signup = useCallback(async (name: string, email: string, password: string, role: AccountType, phoneNumber: string, nationalId: string) => {
-        const res = await fetch(`${API_BASE}/auth/signup`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password, role, phoneNumber, nationalId }),
-        });
-        const data = await res.json();
-        if (res.status === 400) throw new Error(extractErrorMessage(data, 'بيانات غير صحيحة. تحقق من الحقول المطلوبة'));
-        if (!res.ok || !data.success) throw new Error(extractErrorMessage(data, 'فشل إنشاء الحساب'));
-        // Don't set user — account needs email verification first
+    const signup = useCallback(async (data: {
+        name: string; email: string; password: string; role: AccountType;
+        phoneNumber: string; nationalId: string;
+        fatherName?: string; motherName?: string;
+        fatherPhoneNumber?: string; motherPhoneNumber?: string;
+    }) => {
+        let res: Response;
+        try {
+            res = await fetch(`${API_BASE}/auth/signup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+        } catch (fetchErr: any) {
+            if (fetchErr instanceof TypeError && fetchErr.message?.includes('Failed to fetch')) {
+                throw new Error('تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.');
+            }
+            throw new Error('حدث خطأ غير متوقع. حاول مرة أخرى.');
+        }
+        const resData = await res.json();
+        if (res.status === 400) throw new Error(extractErrorMessage(resData, 'بيانات غير صحيحة. تحقق من الحقول المطلوبة'));
+        if (!res.ok || !resData.success) throw new Error(extractErrorMessage(resData, 'فشل إنشاء الحساب'));
     }, []);
 
     const signupTeacher = useCallback(async (payload: {
@@ -128,11 +153,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phoneNumber: string; yearsOfExperience?: number; specialization?: string;
         bio?: string; cvUrl?: string; avatarUrl?: string;
     }) => {
-        const res = await fetch(`${API_BASE}/auth/signup/teacher`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
+        let res: Response;
+        try {
+            res = await fetch(`${API_BASE}/auth/signup/teacher`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+        } catch (fetchErr: any) {
+            if (fetchErr instanceof TypeError && fetchErr.message?.includes('Failed to fetch')) {
+                throw new Error('تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.');
+            }
+            throw new Error('حدث خطأ غير متوقع. حاول مرة أخرى.');
+        }
         const data = await res.json();
         if (res.status === 400) throw new Error(extractErrorMessage(data, 'بيانات غير صحيحة. تحقق من جميع الحقول المطلوبة'));
         if (!res.ok || !data.success) throw new Error(extractErrorMessage(data, 'فشل إنشاء حساب المدرس'));
@@ -144,12 +177,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const logout = useCallback(() => {
-        // Fire-and-forget server-side revocation
+        // Fire-and-forget server-side revocation — only while the session is
+        // actually live, to avoid a doomed 401 request for already-expired tokens.
         const rt = getRefreshToken();
-        if (rt) {
+        if (rt && !isTokenExpired(rt)) {
+            const at = getToken();
             fetch(`${API_BASE}/auth/logout`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...(at ? { Authorization: `Bearer ${at}` } : {}) },
                 body: JSON.stringify({ refreshToken: rt }),
             }).catch(() => {});
         }

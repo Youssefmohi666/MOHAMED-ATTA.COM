@@ -4,8 +4,7 @@ import { Course } from './types/types';
 export const NAV_LINKS = [
   { name: 'الرئيسية', page: 'home' },
   { name: 'الدورات', page: 'courses' },
-  { name: 'البث المباشر', page: 'live-stream' },
-  { name: 'مساعد AI', page: 'ai' },
+  { name: 'المساعد الذكي', page: 'ai' },
   { name: 'من نحن', page: 'about' },
 ];
 

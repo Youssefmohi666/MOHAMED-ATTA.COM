@@ -18,8 +18,10 @@ interface SubjectModalProps {
     setNewSubjectIcon: (icon: string) => void;
     newSubjectPrice: number;
     setNewSubjectPrice: (price: number) => void;
-    newSubjectLevel: string;
-    setNewSubjectLevel: (level: string) => void;
+    newSubjectGrade: string;
+    setNewSubjectGrade: (grade: string) => void;
+    newSubjectTerm: string;
+    setNewSubjectTerm: (term: string) => void;
     newSubjectCategory: string;
     setNewSubjectCategory: (category: string) => void;
     newSubjectImageUrl: string;
@@ -49,13 +51,26 @@ interface SubjectModalProps {
     savedSubjectId?: string;
 }
 
-const CATEGORIES = ['عام', 'رياضيات', 'علوم', 'لغة عربية', 'لغة إنجليزية', 'فيزياء', 'كيمياء', 'أحياء', 'تاريخ', 'جغرافيا', 'برمجة', 'ذكاء اصطناعي', 'فنون', 'تربية دينية'];
+const CATEGORIES = ['علوم', 'العلوم المتكاملة', 'عام', 'رياضيات', 'لغة عربية', 'لغة إنجليزية', 'علوم الحاسب', 'برمجة', 'فنون', 'تربية دينية'];
+
+const GRADES = [
+    'الرابع الابتدائي',
+    'الخامس الابتدائي',
+    'السادس الابتدائي',
+    'الأول الإعدادي',
+    'الثاني الإعدادي',
+    'الثالث الإعدادي',
+    'الأول الثانوي',
+];
+
+const TERMS = ['الترم الأول', 'الترم الثاني'];
 
 const SubjectModal: React.FC<SubjectModalProps> = ({
     show, onClose, editingSubject, createStep, setCreateStep,
     newSubjectName, setNewSubjectName, newSubjectDesc, setNewSubjectDesc,
     newSubjectIcon, setNewSubjectIcon, newSubjectPrice, setNewSubjectPrice,
-    newSubjectLevel, setNewSubjectLevel, newSubjectCategory, setNewSubjectCategory,
+    newSubjectGrade, setNewSubjectGrade, newSubjectTerm, setNewSubjectTerm,
+    newSubjectCategory, setNewSubjectCategory,
     newSubjectImageUrl, setNewSubjectImageUrl, newLevels,
     addLevel, removeLevel, updateLevelName,
     addLecture, removeLecture, updateLecture, onSave, isSaving = false,
@@ -166,7 +181,6 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
 
     const totalSteps = 3;
     const stepTitles = ['معلومات المادة', 'إضافة المستويات', 'إضافة المحاضرات'];
-    const FILTER_LEVELS = ['مبتدئ', 'متوسط', 'متقدم', 'خبير', 'جميع المستويات'];
 
     // Count files still actively transferring bytes (not yet at server-processing stage).
     // Files at 100% with uploadProcessing=true are already sent — don't show them as blocking.
@@ -264,21 +278,15 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
                                 <label htmlFor="subject-name" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
                                     اسم المادة *
                                 </label>
-                                <input
-                                    id="subject-name"
-                                    name="subjectName"
-                                    value={newSubjectName}
-                                    onChange={e => setNewSubjectName(e.target.value)}
-                                    placeholder="مثال: رياضة عامة"
-                                    style={{
-                                        width: '100%', padding: '12px 16px',
-                                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '12px', color: '#e2e8f0', fontSize: '15px',
-                                        fontFamily: "'Cairo', sans-serif", outline: 'none',
-                                    }}
-                                    onFocus={e => e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)'}
-                                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
-                                />
+                                <div style={{
+                                    width: '100%', padding: '12px 16px',
+                                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '12px', color: '#e2e8f0', fontSize: '15px',
+                                    fontFamily: "'Cairo', sans-serif", display: 'flex', alignItems: 'center', gap: '8px',
+                                }}>
+                                    <span>🔬</span>
+                                    <span style={{ fontWeight: 700 }}>Science</span>
+                                </div>
                             </div>
                             <div>
                                 <label htmlFor="subject-desc" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
@@ -301,20 +309,41 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
                                     onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                                 />
                             </div>
-                            <div>
-                                <label htmlFor="subject-level" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
-                                    مستوى الصعوبة *
-                                </label>
-                                <SelectField
-                                    id="subject-level"
-                                    name="subjectLevel"
-                                    value={newSubjectLevel}
-                                    onChange={e => setNewSubjectLevel(e.target.value)}
-                                >
-                                    {FILTER_LEVELS.map(level => (
-                                        <option key={level} value={level}>{level}</option>
-                                    ))}
-                                </SelectField>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '16px',
+                            }}>
+                                <div>
+                                    <label htmlFor="subject-grade" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
+                                        الصف الدراسي *
+                                    </label>
+                                    <SelectField
+                                        id="subject-grade"
+                                        name="subjectGrade"
+                                        value={newSubjectGrade}
+                                        onChange={e => setNewSubjectGrade(e.target.value)}
+                                    >
+                                        {GRADES.map(grade => (
+                                            <option key={grade} value={grade}>{grade}</option>
+                                        ))}
+                                    </SelectField>
+                                </div>
+                                <div>
+                                    <label htmlFor="subject-term" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
+                                        الترم *
+                                    </label>
+                                    <SelectField
+                                        id="subject-term"
+                                        name="subjectTerm"
+                                        value={newSubjectTerm}
+                                        onChange={e => setNewSubjectTerm(e.target.value)}
+                                    >
+                                        {TERMS.map(term => (
+                                            <option key={term} value={term}>{term}</option>
+                                        ))}
+                                    </SelectField>
+                                </div>
                             </div>
                             <div>
                                 <label htmlFor="subject-category" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
@@ -326,7 +355,7 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
                                     value={newSubjectCategory}
                                     onChange={e => setNewSubjectCategory(e.target.value)}
                                 >
-                                    {['عام', 'رياضيات', 'علوم', 'لغة عربية', 'لغة إنجليزية', 'فيزياء', 'كيمياء', 'أحياء', 'تاريخ', 'جغرافيا', 'برمجة', 'فنون', 'تربية دينية'].map(cat => (
+                                    {['علوم', 'العلوم المتكاملة', 'عام', 'رياضيات', 'لغة عربية', 'لغة إنجليزية', 'علوم الحاسب', 'برمجة', 'فنون', 'تربية دينية'].map(cat => (
                                         <option key={cat} value={cat}>{cat}</option>
                                     ))}
                                 </SelectField>
@@ -408,7 +437,7 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
                                             <path d="M15 8.5a4 4 0 00-6 3.5c0 2 1.5 3 3 3.5s3 1.5 3 3.5a4 4 0 01-6 3.5" strokeLinecap="round" />
                                             <path d="M12 6v2M12 16v2" strokeLinecap="round" />
                                         </svg>
-                                        ر.س
+                                        ج.م
                                     </div>
                                 </div>
                                 {newSubjectPrice === 0 && (

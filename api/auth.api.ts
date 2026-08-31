@@ -14,6 +14,10 @@ export function signup(data: {
     role: string;
     phoneNumber: string;
     nationalId: string;
+    fatherName?: string;
+    motherName?: string;
+    fatherPhoneNumber?: string;
+    motherPhoneNumber?: string;
 }) {
     return apiRequest("/auth/signup", {
         method: "POST",

@@ -3,9 +3,9 @@ import { Page } from '../App';
 import { Subject, Level, Lecture, TeacherNavItem } from './teacher/types';
 import {
     fetchTeacherSubjects, fetchTeacherStats, fetchTeacherStudents, pingTeacherAuth,
-    createTeacherSubject, updateTeacherSubject, deleteTeacherSubject,
+    updateTeacherSubject, deleteTeacherSubject,
     publishTeacherSubject, createCourseWithCurriculum
-} from '../services/api';
+} from '../api/teacher.api';
 import TeacherSidebar from './teacher/TeacherSidebar';
 import TeacherStats from './teacher/TeacherStats';
 import TeacherSubjectsGrid from './teacher/TeacherSubjectsGrid';
@@ -15,8 +15,13 @@ import TeacherProfile from './teacher/TeacherProfile';
 import SubjectModal from './teacher/SubjectModal';
 import TeacherLecturesView from './teacher/TeacherLecturesView';
 import AccountingTab from './AccountingTab';
+import TeacherAttendanceTab from './TeacherAttendanceTab';
+import ExamViewer from './teacher/ExamViewer';
+import QuestionBank from './teacher/QuestionBank';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import StreakBadge from './StreakBadge';
+import { computeStreak, recordStudyDay } from '../utils/streak';
 
 interface TeacherDashboardProps {
     onNavigate: (page: Page, payload?: { tab?: string }) => void;
@@ -32,6 +37,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
 
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(true);
+    const [streak, setStreak] = useState(0);
     const [activeNav, setActiveNav] = useState<TeacherNavItem>((initialTab as TeacherNavItem) || 'subjects');
     const [mobileSidebar, setMobileSidebar] = useState(false);
 
@@ -58,6 +64,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
     const [newSubjectIcon, setNewSubjectIcon] = useState('📚');
     const [newSubjectPrice, setNewSubjectPrice] = useState(0);
     const [newSubjectLevel, setNewSubjectLevel] = useState('مبتدئ');
+    const [newSubjectGrade, setNewSubjectGrade] = useState('الرابع الابتدائي');
+    const [newSubjectTerm, setNewSubjectTerm] = useState('الترم الأول');
     const [newSubjectCategory, setNewSubjectCategory] = useState('عام');
     const [newSubjectImageUrl, setNewSubjectImageUrl] = useState('');
     const [newLevels, setNewLevels] = useState<Level[]>([{ id: 'new-l1', title: 'المستوى 1', lectures: [] }]);
@@ -68,7 +76,11 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
             setIsLoadingData(true);
             try {
                 const ok = await pingTeacherAuth();
-                if (!ok) { onNavigate('login'); return; }
+                if (!ok) {
+                    setIsLoadingData(false);
+                    showToast('تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.', 'error');
+                    return;
+                }
 
                 const [subjectsData, statsData] = await Promise.all([
                     fetchTeacherSubjects(),
@@ -84,6 +96,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                         category: s.category || 'عام',
                         price: s.price || 0,
                         level: s.level || 'مبتدئ',
+                        grade: s.grade || '',
+                        term: s.term || '',
                         levels: (s.levels || []).map((l: any) => ({
                             id: l.id?.toString() || `lev-${Date.now()}`,
                             title: l.title || l.name || '',
@@ -137,6 +151,15 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
         loadData();
     }, []);
 
+    // ── Streak (daily activity) ────────────────────────────────────────────
+    useEffect(() => {
+        const uid = user?.id;
+        if (!uid || uid === 'guest') { setStreak(0); return; }
+        setStreak(computeStreak(uid));
+        const t = setTimeout(() => setStreak(recordStudyDay(uid)), 500);
+        return () => clearTimeout(t);
+    }, [user?.id]);
+
     // ── Load students on tab switch ────────────────────────────────────────
     useEffect(() => {
         if (activeNav !== 'students') return;
@@ -159,8 +182,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
 
     // ── Form helpers ───────────────────────────────────────────────────────
     const resetForm = () => {
-        setNewSubjectName(''); setNewSubjectDesc(''); setNewSubjectIcon('📚');
+        setNewSubjectName('Science'); setNewSubjectDesc(''); setNewSubjectIcon('📚');
         setNewSubjectPrice(0); setNewSubjectLevel('مبتدئ'); setNewSubjectCategory('عام');
+        setNewSubjectGrade('الرابع الابتدائي'); setNewSubjectTerm('الترم الأول');
         setNewSubjectImageUrl('');
         setNewLevels([{ id: 'new-l1', title: 'المستوى 1', lectures: [] }]);
         setCreateStep(1); setEditingSubject(null);
@@ -169,10 +193,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
     const openCreateModal = () => { resetForm(); setShowCreateModal(true); };
     const openEditModal = (subject: Subject) => {
         setEditingSubject(subject);
-        setNewSubjectName(subject.title); setNewSubjectDesc(subject.description);
+        setNewSubjectName('Science'); setNewSubjectDesc(subject.description);
         setNewSubjectIcon(subject.icon);
         setNewSubjectPrice(subject.price || 0);
         setNewSubjectLevel(subject.level || 'مبتدئ');
+        setNewSubjectGrade(subject.grade || 'الرابع الابتدائي');
+        setNewSubjectTerm(subject.term || 'الترم الأول');
         setNewSubjectCategory(subject.category || 'عام');
         setNewSubjectImageUrl('');
         setNewLevels(JSON.parse(JSON.stringify(subject.levels)));
@@ -291,10 +317,10 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                 }, 0), 0);
 
                 const editLevels = newLevels
-                    .filter(l => (l.title || l.Title || '').trim())
+                    .filter(l => (l.title || (l as any).Title || '').trim())
                     .map((level, i) => ({
                         id: maybeGuid(level.id),
-                        title: level.title || level.Title,
+                        title: level.title || (level as any).Title,
                         sortOrder: i,
                         lectures: level.lectures.filter(lec => lec.title.trim()).map((lec, j) => ({
                             id: maybeGuid(lec.id),
@@ -315,6 +341,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                     description: newSubjectDesc,
                     price: newSubjectPrice,
                     level: newSubjectLevel,
+                    grade: newSubjectGrade,
+                    term: newSubjectTerm,
                     category: newSubjectCategory,
                     imageUrl: newSubjectImageUrl || undefined,
                     duration: Math.max(1, totalDuration),
@@ -327,6 +355,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                     icon: newSubjectIcon,
                     price: newSubjectPrice,
                     level: newSubjectLevel,
+                    grade: newSubjectGrade,
+                    term: newSubjectTerm,
                     category: newSubjectCategory,
                     levels: newLevels
                 } : s));
@@ -362,6 +392,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                     category: newSubjectCategory || 'عام',
                     duration: Math.max(1, totalDuration),
                     level: newSubjectLevel !== 'جميع المستويات' ? newSubjectLevel : undefined,
+                    grade: newSubjectGrade,
+                    term: newSubjectTerm,
                     language: 'العربية',
                     price: newSubjectPrice,
                     imageUrl: newSubjectImageUrl || undefined,
@@ -379,6 +411,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                     icon: newSubjectIcon,
                     price: rd.price || newSubjectPrice,
                     level: rd.level || newSubjectLevel,
+                    grade: rd.grade || newSubjectGrade,
+                    term: rd.term || newSubjectTerm,
                     category: rd.category || newSubjectCategory,
                     levels: (rd.levels || []).map((s: any) => ({
                         id: s.id?.toString() || `lev-${Date.now()}`,
@@ -453,7 +487,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                         className="absolute inset-0 bg-black/55 backdrop-blur-sm"
                         onClick={() => setMobileSidebar(false)}
                     />
-                    <div className="relative z-10">
+                    <div className="relative z-10 max-w-[80vw] overflow-y-auto max-h-screen">
                         <TeacherSidebar
                             activeNav={activeNav}
                             onNavChange={(nav) => { setActiveNav(nav); setMobileSidebar(false); }}
@@ -466,10 +500,10 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
             {/* Main */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Top bar */}
-                <header className="sticky top-0 z-40 bg-[#0f172a] border-b border-white/[0.06] px-5 py-3.5 flex items-center justify-between">
-                    <div className="flex items-center gap-3.5">
+                <header className="sticky top-0 z-40 bg-[#0f172a] border-b border-white/[0.06] px-5 py-3.5 flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-3.5 min-w-0">
                         <button
-                            className="md:hidden bg-white/[0.05] border border-white/[0.08] rounded-lg p-2 text-slate-400 cursor-pointer hover:bg-white/10 transition-colors duration-200 flex items-center justify-center"
+                            className="md:hidden bg-white/[0.05] border border-white/[0.08] rounded-lg p-2 text-slate-400 cursor-pointer hover:bg-white/10 transition-colors duration-200 flex items-center justify-center shrink-0"
                             onClick={() => setMobileSidebar(true)}
                             aria-label="فتح القائمة"
                         >
@@ -479,7 +513,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                                 <line x1="3" y1="18" x2="21" y2="18" strokeLinecap="round"/>
                             </svg>
                         </button>
-                        <h1 className="text-lg font-extrabold text-slate-100 m-0">
+                        <h1 className="text-base sm:text-lg font-extrabold text-slate-100 m-0 truncate">
                             مرحباً، أ. {user?.name || 'المدرس'}
                         </h1>
                     </div>
@@ -510,16 +544,54 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                 <main className="flex-1 overflow-y-auto p-5">
                     {(activeNav === 'dashboard' || activeNav === 'subjects') && (
                         <>
+                            <div className="relative overflow-hidden bg-[#121f36] border border-white/[0.06] rounded-3xl p-6 sm:p-7 mb-6 shadow-xl shadow-black/20">
+                                <div className="absolute top-0 left-0 w-56 h-56 rounded-full bg-[#1E3A8A]/25 -translate-x-20 -translate-y-20" />
+                                <div className="absolute bottom-0 right-0 w-40 h-40 rounded-full bg-amber-500/[0.08] translate-x-14 translate-y-14" />
+                                <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                                    <div className="max-w-xl">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <StreakBadge days={streak} variant="dark" />
+                                            <span className="text-xs font-bold text-slate-400 hidden sm:inline">كل يوم تنتظرك فايدة…</span>
+                                        </div>
+                                        <h1 className="text-xl sm:text-2xl font-black text-slate-100 font-cairo m-0">
+                                            أ. {user?.name || 'مدرس'}, شغلك بيوصّل 💪
+                                        </h1>
+                                        <p className="text-sm text-slate-400/90 mt-1.5 leading-relaxed m-0">
+                                            كل محاضرة جديدة بتاخد طلابك خطوة قدام، وكل امتحان بيثبت المعلومة. استمر في النشر وشوف النتيجة في التحليلات.
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                                        <button
+                                            onClick={openCreateModal}
+                                            className="flex items-center gap-2 bg-gradient-to-r from-[#f59e0b] to-[#d97706] border-none rounded-xl px-5 py-3 text-white text-sm font-extrabold cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber-500/30 transition-all duration-200 shadow-lg shadow-amber-500/20 font-cairo"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                <path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                            مادة جديدة
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveNav('students')}
+                                            className="flex items-center gap-2 bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3 text-slate-300 text-sm font-bold cursor-pointer hover:bg-white/10 hover:text-slate-100 transition-all duration-200 font-cairo"
+                                        >
+                                            حوّل الطلاب
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                             <TeacherStats totalSubjects={totalSubjects} totalStudents={totalStudents} totalLectures={totalLectures} publishedCount={publishedCount} />
                             <TeacherSubjectsGrid subjects={subjects} onEdit={openEditModal} onTogglePublish={togglePublish} onDelete={deleteSubject} onCreateNew={openCreateModal} onViewLectures={setViewingSubject} />
                         </>
                     )}
-                    {activeNav === 'students' && <TeacherStudents students={apiStudents} loading={studentsLoading} />}
+                    {activeNav === 'students' && <TeacherStudents />}
                     {activeNav === 'analytics' && (
                         <TeacherAnalytics subjects={subjects} totalSubjects={totalSubjects} totalStudents={totalStudents} totalLectures={totalLectures} publishedCount={publishedCount} activities={apiActivities} />
                     )}
                     {activeNav === 'profile' && <TeacherProfile />}
+                    {activeNav === 'exams' && <ExamViewer />}
+                    {activeNav === 'bank' && <QuestionBank />}
                     {activeNav === 'accounting' && <AccountingTab mode="teacher" teacherId={user?.id} showToast={(msg, ok) => showToast(msg, ok ? 'success' : 'error')} />}
+                    {activeNav === 'attendance' && <TeacherAttendanceTab showToast={(msg, ok) => showToast(msg, ok ? 'success' : 'error')} />}
                 </main>
             </div>
 
@@ -536,7 +608,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                 newSubjectDesc={newSubjectDesc} setNewSubjectDesc={setNewSubjectDesc}
                 newSubjectIcon={newSubjectIcon} setNewSubjectIcon={setNewSubjectIcon}
                 newSubjectPrice={newSubjectPrice} setNewSubjectPrice={setNewSubjectPrice}
-                newSubjectLevel={newSubjectLevel} setNewSubjectLevel={setNewSubjectLevel}
+                newSubjectGrade={newSubjectGrade} setNewSubjectGrade={setNewSubjectGrade}
+                newSubjectTerm={newSubjectTerm} setNewSubjectTerm={setNewSubjectTerm}
                 newSubjectCategory={newSubjectCategory} setNewSubjectCategory={setNewSubjectCategory}
                 newSubjectImageUrl={newSubjectImageUrl} setNewSubjectImageUrl={setNewSubjectImageUrl}
                 newLevels={newLevels}

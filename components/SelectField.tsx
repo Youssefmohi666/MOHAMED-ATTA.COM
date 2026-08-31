@@ -29,12 +29,12 @@ const SelectField: React.FC<SelectFieldProps> = ({
 
   const darkCls =
     'select-dark bg-[#0d1f3c] border border-white/[0.12] text-slate-200 py-2.5 ' +
-    'hover:border-white/25 focus:border-[#034289] focus:ring-1 focus:ring-[#034289]/40 ' +
+    'hover:border-white/25 focus:border-[#1E3A8A] focus:ring-1 focus:ring-[#1E3A8A]/40 ' +
     'focus:bg-[#0f2540] shadow-sm';
 
   const lightCls =
-    'select-light bg-[#f3f4f5] border border-[#D2E1D9] text-[#034289] py-2.5 ' +
-    'hover:border-[#034289]/40 focus:border-[#034289] focus:ring-1 focus:ring-[#034289]/20 ' +
+    'select-light bg-[#f3f4f5] border border-[#DBEAFE] text-[#1E3A8A] py-2.5 ' +
+    'hover:border-[#1E3A8A]/40 focus:border-[#1E3A8A] focus:ring-1 focus:ring-[#1E3A8A]/20 ' +
     'focus:bg-white shadow-sm';
 
   const themeCls = theme === 'light' ? lightCls : darkCls;
@@ -55,7 +55,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
       >
         <svg
           className={`w-4 h-4 transition-colors duration-150 ${
-            theme === 'light' ? 'text-[#034289]/50' : 'text-slate-500'
+            theme === 'light' ? 'text-[#1E3A8A]/50' : 'text-slate-500'
           }`}
           viewBox="0 0 24 24"
           fill="none"

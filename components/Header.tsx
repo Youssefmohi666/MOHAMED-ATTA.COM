@@ -3,6 +3,7 @@ import { Page } from '../App';
 import { NAV_LINKS } from '../constants';
 import Logo from './Logo';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface HeaderProps {
   onNavigate: (page: Page) => void;
@@ -55,6 +56,39 @@ const LogoutIcon = () => (
     <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );
+
+const SunIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" aria-hidden="true">
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" aria-hidden="true">
+    <path d="M12 3a6 6 0 009 9 9 9 0 11-9-9z" />
+  </svg>
+);
+
+const ThemeToggle = () => {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={isDark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}
+      title={isDark ? 'الوضع الفاتح' : 'الوضع الداكن'}
+      className="cursor-pointer w-9 h-9 flex items-center justify-center rounded-lg border border-[#DBEAFE]/60
+        dark:border-white/10 text-[#1E3A8A] dark:text-slate-300
+        hover:bg-[#DBEAFE]/30 dark:hover:bg-white/10 transition-colors duration-200"
+    >
+      {isDark ? <SunIcon /> : <MoonIcon />}
+    </button>
+  );
+};
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -138,7 +172,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
   // ── Scroll-based header classes ──────────────────────────────────────────
   const headerClasses = isScrolled
-    ? 'backdrop-blur-md bg-white/80 shadow-md'
+    ? 'backdrop-blur-xl bg-[#FAF6EB]/70 dark:bg-[#0a1628]/70 shadow-[0_8px_32px_-8px_rgba(30,58,138,0.18)] border-b border-white/40 dark:border-white/10'
     : 'bg-transparent';
 
   return (
@@ -153,7 +187,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
           <div className="flex-shrink-0">
             <button
               onClick={() => onNavigate('home')}
-              className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F8751] rounded-lg transition-colors duration-200"
+              className="cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DC2626] rounded-lg transition-colors duration-200"
               aria-label="الصفحة الرئيسية"
             >
               <Logo size="md" />
@@ -168,8 +202,8 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 onClick={() => onNavigate(link.page as Page)}
                 className={`cursor-pointer text-base font-semibold transition-colors duration-200 px-2 py-1 rounded-md
                   ${currentPage === link.page
-                    ? 'text-[#4F8751]'
-                    : 'text-[#034289] hover:text-[#4F8751] hover:bg-[#D2E1D9]/30'
+                    ? 'text-[#DC2626]'
+                    : 'text-[#1E3A8A] hover:text-[#DC2626] hover:bg-[#DBEAFE]/30 dark:text-slate-200 dark:hover:bg-white/10'
                   }`}
               >
                 {link.name}
@@ -179,6 +213,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
           {/* Desktop Auth / User — left side in RTL */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {isLoggedIn && user ? (
               <div className="relative">
                 <button
@@ -187,19 +222,19 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                   onClick={toggleUserMenu}
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="true"
-                  className="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#D2E1D9]/60
-                    hover:border-[#4F8751]/50 bg-white/80 hover:bg-[#D2E1D9]/20
+                  className="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#DBEAFE]/60
+                    hover:border-[#DC2626]/50 bg-white/80 hover:bg-[#DBEAFE]/20
                     transition-colors duration-200"
                 >
                   {/* Avatar */}
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#034289] to-[#4F8751]
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1E3A8A] to-[#DC2626]
                     flex items-center justify-center text-white font-bold text-xs shadow-sm overflow-hidden">
                     {user.avatar
                       ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                       : getInitials(user.name)
                     }
                   </div>
-                  <span className="hidden lg:block text-sm font-semibold text-[#034289] max-w-[100px] truncate">
+                  <span className="hidden lg:block text-sm font-semibold text-[#1E3A8A] dark:text-slate-200 max-w-[100px] truncate">
                     {user.name}
                   </span>
                   <ChevronDownIcon rotated={isUserMenuOpen} />
@@ -212,14 +247,14 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                     id="user-dropdown"
                     role="menu"
                     aria-label="قائمة المستخدم"
-                    className="absolute left-0 top-[calc(100%+8px)] w-64 bg-white/95 backdrop-blur-xl
-                      border border-[#D2E1D9]/40 rounded-2xl shadow-xl overflow-hidden z-[100]
+                    className="absolute left-0 top-[calc(100%+8px)] w-64 bg-white/95 dark:bg-[#0d1f33]/95 backdrop-blur-2xl
+                      border border-white/60 dark:border-white/10 rounded-2xl shadow-[0_24px_60px_-12px_rgba(30,58,138,0.3)] overflow-hidden z-[100]
                       animate-fade-in-down"
                   >
                     {/* User info header */}
-                    <div className="p-4 bg-gradient-to-br from-[#034289]/5 to-[#4F8751]/5">
+                    <div className="p-4 bg-gradient-to-br from-[#1E3A8A]/5 to-[#DC2626]/5">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#034289] to-[#4F8751]
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1E3A8A] to-[#DC2626]
                           flex items-center justify-center text-white font-bold text-sm shadow overflow-hidden">
                           {user.avatar
                             ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
@@ -227,12 +262,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-[#034289] text-sm truncate">{user.name}</p>
-                          <p className="text-xs text-[#034289]/50 truncate">{user.email}</p>
+                          <p className="font-bold text-[#1E3A8A] dark:text-slate-100 text-sm truncate">{user.name}</p>
+                          <p className="text-xs text-[#1E3A8A]/50 dark:text-slate-400 truncate">{user.email}</p>
                           <span className={`inline-block mt-1 text-xs font-semibold px-2 py-0.5 rounded-full
                             ${user.role === 'teacher'
-                              ? 'bg-[#034289]/10 text-[#034289]'
-                              : 'bg-[#4F8751]/10 text-[#4F8751]'
+                              ? 'bg-[#1E3A8A]/10 text-[#1E3A8A]'
+                              : 'bg-[#DC2626]/10 text-[#DC2626]'
                             }`}>
                             {getRoleLabel()}
                           </span>
@@ -246,9 +281,9 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                         role="menuitem"
                         onClick={handleDashboardClick}
                         className="cursor-pointer w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                          text-[#034289] hover:bg-[#D2E1D9]/30 transition-colors duration-200"
+                          text-[#1E3A8A] hover:bg-[#DBEAFE]/30 transition-colors duration-200"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-[#034289]/5 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-[#1E3A8A]/5 flex items-center justify-center">
                           <DashboardIcon />
                         </div>
                         <span className="font-semibold text-sm">لوحة التحكم</span>
@@ -258,9 +293,9 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                         role="menuitem"
                         onClick={handleSettingsClick}
                         className="cursor-pointer w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                          text-[#034289] hover:bg-[#D2E1D9]/30 transition-colors duration-200"
+                          text-[#1E3A8A] hover:bg-[#DBEAFE]/30 transition-colors duration-200"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-[#034289]/5 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-[#1E3A8A]/5 flex items-center justify-center">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                             strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5" aria-hidden="true">
                             <circle cx="12" cy="12" r="3" />
@@ -272,7 +307,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                     </div>
 
                     <div className="px-4 pb-2">
-                      <div className="h-px bg-[#D2E1D9]/50 mb-2" />
+                      <div className="h-px bg-[#DBEAFE]/50 mb-2" />
                       <button
                         role="menuitem"
                         onClick={handleLogout}
@@ -292,17 +327,17 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               <>
                 <button
                   onClick={() => onNavigate('login')}
-                  className="cursor-pointer text-sm font-semibold text-[#034289] hover:text-[#4F8751]
-                    transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-[#D2E1D9]/30"
+                  className="cursor-pointer text-sm font-semibold text-[#1E3A8A] dark:text-slate-200 hover:text-[#DC2626]
+                    transition-colors duration-200 px-4 py-2 rounded-lg hover:bg-[#DBEAFE]/30 dark:hover:bg-white/10"
                 >
                   تسجيل الدخول
                 </button>
                 <button
                   onClick={() => onNavigate('signup')}
-                  className="cursor-pointer px-5 py-2 text-sm font-bold text-white rounded-lg shadow-sm
-                    bg-gradient-to-l from-[#002c61] to-[#034289]
-                    hover:from-[#034289] hover:to-[#0a458c]
-                    transition-colors duration-200"
+                  className="cursor-pointer px-5 py-2 text-sm font-bold text-white rounded-xl shadow-[0_8px_20px_-6px_rgba(30,58,138,0.5)] hover:shadow-[0_12px_28px_-6px_rgba(30,58,138,0.6)] hover:-translate-y-0.5
+                    bg-gradient-to-l from-[#1e2a5c] to-[#1E3A8A]
+                    hover:from-[#1E3A8A] hover:to-[#0a458c]
+                    transition-all duration-300"
                 >
                   إنشاء حساب
                 </button>
@@ -312,11 +347,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
 
           {/* Mobile: avatar + hamburger — visible at < 768px */}
           <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
             {isLoggedIn && user && (
               <button
                 onClick={toggleUserMenu}
                 aria-label="قائمة المستخدم"
-                className="cursor-pointer w-8 h-8 rounded-full bg-gradient-to-br from-[#034289] to-[#4F8751]
+                className="cursor-pointer w-8 h-8 rounded-full bg-gradient-to-br from-[#1E3A8A] to-[#DC2626]
                   flex items-center justify-center text-white font-bold text-xs shadow overflow-hidden
                   transition-colors duration-200"
               >
@@ -330,7 +366,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               onClick={() => { setIsMenuOpen(prev => !prev); setIsUserMenuOpen(false); }}
               aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
               aria-expanded={isMenuOpen}
-              className="cursor-pointer text-[#034289] p-2 rounded-lg hover:bg-[#D2E1D9]/30
+              className="cursor-pointer text-[#1E3A8A] p-2 rounded-lg hover:bg-[#DBEAFE]/30
                 transition-colors duration-200"
             >
               {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
@@ -342,7 +378,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
       {/* Mobile Menu — hidden at >= 768px */}
       {isMenuOpen && (
         <div
-          className="md:hidden backdrop-blur-md bg-white/90 border-t border-[#D2E1D9]/40"
+          className="md:hidden backdrop-blur-md bg-white/90 dark:bg-[#0d1f33]/95 border-t border-[#DBEAFE]/40 dark:border-white/10"
           role="navigation"
           aria-label="القائمة المحمولة"
         >
@@ -354,20 +390,20 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                 className={`cursor-pointer w-full text-center text-base font-semibold py-2.5 px-4 rounded-xl
                   transition-colors duration-200
                   ${currentPage === link.page
-                    ? 'text-[#4F8751] bg-[#D2E1D9]/30'
-                    : 'text-[#034289] hover:text-[#4F8751] hover:bg-[#D2E1D9]/20'
+                    ? 'text-[#DC2626] bg-[#DBEAFE]/30 dark:bg-white/10'
+                    : 'text-[#1E3A8A] hover:text-[#DC2626] hover:bg-[#DBEAFE]/20 dark:text-slate-200'
                   }`}
               >
                 {link.name}
               </button>
             ))}
 
-            <div className="w-full h-px bg-[#D2E1D9]/50 my-2" />
+            <div className="w-full h-px bg-[#DBEAFE]/50 my-2" />
 
             {isLoggedIn && user ? (
               <>
-                <div className="flex items-center gap-3 w-full px-4 py-3 bg-[#D2E1D9]/20 rounded-xl">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#034289] to-[#4F8751]
+                <div className="flex items-center gap-3 w-full px-4 py-3 bg-[#DBEAFE]/20 rounded-xl">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1E3A8A] to-[#DC2626]
                     flex items-center justify-center text-white font-bold text-sm overflow-hidden">
                     {user.avatar
                       ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
@@ -375,16 +411,16 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
                     }
                   </div>
                   <div>
-                    <p className="font-bold text-[#034289] text-sm">{user.name}</p>
-                    <span className={`text-xs font-semibold ${user.role === 'teacher' ? 'text-[#034289]' : 'text-[#4F8751]'}`}>
+                    <p className="font-bold text-[#1E3A8A] text-sm">{user.name}</p>
+                    <span className={`text-xs font-semibold ${user.role === 'teacher' ? 'text-[#1E3A8A]' : 'text-[#DC2626]'}`}>
                       {getRoleLabel()}
                     </span>
                   </div>
                 </div>
                 <button
                   onClick={() => { handleDashboardClick(); setIsMenuOpen(false); }}
-                  className="cursor-pointer w-full text-center text-base font-semibold text-[#034289]
-                    hover:text-[#4F8751] py-2.5 px-4 rounded-xl hover:bg-[#D2E1D9]/20
+                  className="cursor-pointer w-full text-center text-base font-semibold text-[#1E3A8A]
+                    hover:text-[#DC2626] py-2.5 px-4 rounded-xl hover:bg-[#DBEAFE]/20
                     transition-colors duration-200"
                 >
                   لوحة التحكم
@@ -401,18 +437,18 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, currentPage }) => {
               <>
                 <button
                   onClick={() => { onNavigate('login'); setIsMenuOpen(false); }}
-                  className="cursor-pointer w-full text-center text-base font-semibold text-[#034289]
-                    hover:text-[#4F8751] py-2.5 px-4 rounded-xl hover:bg-[#D2E1D9]/20
+                  className="cursor-pointer w-full text-center text-base font-semibold text-[#1E3A8A] dark:text-slate-200
+                    hover:text-[#DC2626] py-2.5 px-4 rounded-xl hover:bg-[#DBEAFE]/20
                     transition-colors duration-200"
                 >
                   تسجيل الدخول
                 </button>
                 <button
                   onClick={() => { onNavigate('signup'); setIsMenuOpen(false); }}
-                  className="cursor-pointer w-full py-3 text-base font-bold text-white rounded-xl shadow
-                    bg-gradient-to-l from-[#002c61] to-[#034289]
-                    hover:from-[#034289] hover:to-[#0a458c]
-                    transition-colors duration-200"
+                  className="cursor-pointer w-full py-3 text-base font-bold text-white rounded-xl shadow-lg
+                    bg-gradient-to-l from-[#1e2a5c] to-[#1E3A8A]
+                    hover:from-[#1E3A8A] hover:to-[#0a458c]
+                    transition-all duration-200"
                 >
                   إنشاء حساب
                 </button>

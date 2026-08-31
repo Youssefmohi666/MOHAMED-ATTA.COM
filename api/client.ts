@@ -98,14 +98,23 @@ export async function authedFetch(url: string, options: RequestInit = {}, _retry
  * Returns parsed JSON data.
  */
 export async function apiRequest(endpoint: string, options: RequestInit = {}, _retry = false): Promise<any> {
-    const response = await authedFetch(`${API_BASE}${endpoint}`, options, _retry);
+    try {
+        const response = await authedFetch(`${API_BASE}${endpoint}`, options, _retry);
 
-    if (!response.ok) {
-        const errorBody = await response.json().catch(() => null);
-        const err = new Error(extractErrorMessage(errorBody, response.status));
-        (err as any).status = response.status;
-        throw err;
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => null);
+            const err = new Error(extractErrorMessage(errorBody, response.status));
+            (err as any).status = response.status;
+            throw err;
+        }
+
+        return response.json();
+    } catch (error: any) {
+        if (error instanceof TypeError && (error.message === 'Failed to fetch' || error.message?.includes('Failed to fetch'))) {
+            const err = new Error('تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.');
+            (err as any).status = 0;
+            throw err;
+        }
+        throw error;
     }
-
-    return response.json();
 }

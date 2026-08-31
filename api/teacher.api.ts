@@ -40,6 +40,23 @@ export function updateSubject(id: string, data: {
     imageUrl?: string;
     icon?: string;
     status?: string;
+    grade?: string;
+    term?: string;
+    levels?: Array<{
+        id?: string;
+        title: string;
+        sortOrder: number;
+        lectures?: Array<{
+            id?: string;
+            title: string;
+            duration?: string;
+            videoUrl?: string;
+            mediaFileId?: string;
+            videoFileId?: string;
+            documentFileIds?: string[];
+            sortOrder: number;
+        }>;
+    }>;
 }) {
     // Validate ID
     if (!validateGuid(id)) {
@@ -63,6 +80,12 @@ export function updateSubject(id: string, data: {
     }
     if (data.level !== undefined) {
         sanitizedData.level = sanitizePlainText(data.level, 50);
+    }
+    if (data.grade !== undefined) {
+        sanitizedData.grade = sanitizePlainText(data.grade, 100);
+    }
+    if (data.term !== undefined) {
+        sanitizedData.term = sanitizePlainText(data.term, 50);
     }
     if (data.language !== undefined) {
         sanitizedData.language = sanitizePlainText(data.language, 50);
@@ -93,6 +116,9 @@ export function updateSubject(id: string, data: {
             throw new Error('الحالة غير صالحة');
         }
         sanitizedData.status = data.status;
+    }
+    if (data.levels !== undefined) {
+        sanitizedData.levels = data.levels;
     }
 
     return apiRequest(`/teacher/subjects/${encodeURIComponent(id)}`, {
@@ -132,7 +158,6 @@ export function getTeacherStats() {
 }
 
 export function getTeacherStudents(search?: string) {
-    // Sanitize search parameter
     let qs = "";
     if (search) {
         const sanitizedSearch = sanitizeSearchQuery(search);
@@ -142,3 +167,163 @@ export function getTeacherStudents(search?: string) {
     }
     return apiRequest(`/teacher/students${qs}`);
 }
+
+export async function pingTeacherAuth(): Promise<boolean> {
+    try {
+        await apiRequest("/teacher");
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+export function createCourseWithCurriculum(data: {
+    title: string;
+    description?: string;
+    category: string;
+    duration: number;
+    level?: string;
+    grade?: string;
+    term?: string;
+    language?: string;
+    price: number;
+    imageUrl?: string;
+    sections: Array<{
+        title: string;
+        sortOrder?: number;
+        lectures: Array<{
+            title: string;
+            duration?: string;
+            videoUrl?: string;
+            mediaFileId?: string;
+            videoFileId?: string;
+            documentFileIds?: string[];
+            sortOrder?: number;
+            isPreview?: boolean;
+        }>;
+    }>;
+}) {
+    const payload = {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        duration: data.duration,
+        level: data.level,
+        grade: data.grade,
+        term: data.term,
+        language: data.language,
+        price: data.price,
+        imageUrl: data.imageUrl,
+        icon: "📚",
+        levels: data.sections.map((section, idx) => ({
+            title: section.title,
+            sortOrder: section.sortOrder ?? idx,
+            lectures: section.lectures.map((lec, lecIdx) => ({
+                title: lec.title,
+                duration: lec.duration,
+                videoUrl: lec.videoUrl,
+                mediaFileId: lec.mediaFileId,
+                videoFileId: lec.videoFileId,
+                documentFileIds: lec.documentFileIds,
+                sortOrder: lec.sortOrder ?? lecIdx,
+            })),
+        })),
+    };
+    return apiRequest("/teacher/subjects", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+}
+
+// ── Legacy-compatible wrappers ─────────────────────────────────
+
+export const fetchTeacherSubjects = async (): Promise<any[]> => {
+    try {
+        const json = await getSubjects();
+        return (json.data ?? []) as any[];
+    } catch {
+        return [];
+    }
+};
+
+export const fetchTeacherStats = async (): Promise<any> => {
+    try {
+        const json = await getTeacherStats();
+        return json.data ?? null;
+    } catch {
+        return null;
+    }
+};
+
+export const fetchTeacherStudents = async (search?: string): Promise<any[]> => {
+    try {
+        const json = await getTeacherStudents(search);
+        return json.data ?? [];
+    } catch {
+        return [];
+    }
+};
+
+// ── Student tracking detail ────────────────────────────────────────────────
+
+export function getStudentDetail(id: string) {
+    if (!validateGuid(id)) {
+        throw new Error('معرف الطالب غير صالح');
+    }
+    return apiRequest(`/teacher/students/${encodeURIComponent(id)}`);
+}
+
+export const fetchStudentDetail = async (id: string): Promise<any | null> => {
+    try {
+        const json = await getStudentDetail(id);
+        return json.data ?? null;
+    } catch {
+        return null;
+    }
+};
+
+// ── AI features (file analysis + report generation) ─────────────────────────
+
+export function analyzeFile(file: File, context?: string) {
+    if (!file) throw new Error('لم يتم اختيار ملف');
+    const form = new FormData();
+    form.append('file', file);
+    if (context && context.trim()) {
+        form.append('context', sanitizePlainText(context, 1000));
+    }
+    return apiRequest('/ai/analyze-file', {
+        method: 'POST',
+        body: form,
+    });
+}
+
+export function generateReport(payload: {
+    reportType: 'student' | 'subject' | 'class';
+    studentName?: string;
+    subjectName?: string;
+    contextJson?: object | string;
+    customPrompt?: string;
+}) {
+    const body: Record<string, any> = {
+        reportType: payload.reportType,
+        studentName: payload.studentName ? sanitizePlainText(payload.studentName, 200) : undefined,
+        subjectName: payload.subjectName ? sanitizePlainText(payload.subjectName, 200) : undefined,
+        customPrompt: payload.customPrompt ? sanitizePlainText(payload.customPrompt, 2000) : undefined,
+    };
+    if (payload.contextJson !== undefined) {
+        body.contextJson = typeof payload.contextJson === 'string'
+            ? payload.contextJson
+            : JSON.stringify(payload.contextJson);
+    } else {
+        body.contextJson = '';
+    }
+    return apiRequest('/ai/generate-report', {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+}
+
+export const createTeacherSubject = createSubject;
+export const updateTeacherSubject = updateSubject;
+export const deleteTeacherSubject = deleteSubject;
+export const publishTeacherSubject = publishSubject;

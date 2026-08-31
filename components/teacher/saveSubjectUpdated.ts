@@ -18,7 +18,7 @@
 import {
   createCourseWithCurriculum,
   updateTeacherSubject,
-} from "../../services/api";
+} from "../../api/teacher.api";
 import { Subject, Level } from "./types";
 
 const GUID_RE =
@@ -37,6 +37,10 @@ export const createSaveSubjectFunction = (
   showToast: (message: string, type: "success" | "error") => void,
   setShowCreateModal: (show: boolean) => void,
   resetForm: () => void,
+  newSubjectPrice?: number,
+  newSubjectLevel?: string,
+  newSubjectCategory?: string,
+  newSubjectImageUrl?: string,
 ) => {
   return async () => {
     if (!token) {

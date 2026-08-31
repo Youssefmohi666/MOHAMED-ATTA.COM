@@ -9,7 +9,6 @@ const PATH_TO_PAGE: Record<string, Page> = {
   '/login': 'login',
   '/subject': 'course-detail',
   '/about': 'about',
-  '/live-stream': 'live-stream',
   '/ai': 'ai',
   '/pricing': 'pricing',
   '/blog': 'blog',
@@ -48,9 +47,13 @@ import Hero from './components/Hero';
 import Stats from './components/Stats';
 import Features from './components/Features';
 import PopularCourses from './components/PopularCourses';
-import TeacherCTA from './components/TeacherCTA';
+import Testimonials from './components/Testimonials';
+import CurriculumContent from './components/CurriculumContent';
+import HomeComments from './components/HomeComments';
 import { useAuth } from './contexts/AuthContext';
 import ToastContainer from './contexts/ToastContext';
+import { useSeo } from './hooks/useSeo';
+import { getSeoFor } from './utils/seoConfig';
 
 // Lazily loaded — split into separate chunks, loaded on demand
 const CoursesPage = React.lazy(() => import('./components/CoursesPage'));
@@ -58,7 +61,6 @@ const SignUpForm = React.lazy(() => import('./components/SignUpForm'));
 const LoginPage = React.lazy(() => import('./components/LoginPage'));
 const CourseDetailPage = React.lazy(() => import('./components/CourseDetailPage'));
 const AboutPage = React.lazy(() => import('./components/AboutPage'));
-const LiveStreamPage = React.lazy(() => import('./components/LiveStreamPage'));
 const AIPage = React.lazy(() => import('./components/AIPage'));
 const PricingPage = React.lazy(() => import('./components/PricingPage'));
 const BlogPage = React.lazy(() => import('./components/BlogPage'));
@@ -76,8 +78,11 @@ const AdminDashboard = React.lazy(() => import('./components/AdminDashboard'));
 const VerifyEmailPage = React.lazy(() => import('./components/VerifyEmailPage'));
 const ForgotPasswordPage = React.lazy(() => import('./components/ForgotPasswordPage'));
 
-export type Page = 'home' | 'courses' | 'signup' | 'login' | 'course-detail' | 'about' | 'live-stream' | 'ai' | 'pricing' | 'blog' | 'support' | 'privacy' | 'dashboard' | 'contact' | 'instructor' | 'checkout' | 'payment-success' | 'payment-failed' | 'video-viewer' | 'teacher-dashboard' | 'admin-dashboard' | 'verify-email' | 'forgot-password';
+export type Page = 'home' | 'courses' | 'signup' | 'login' | 'course-detail' | 'about' | 'ai' | 'pricing' | 'blog' | 'support' | 'privacy' | 'dashboard' | 'contact' | 'instructor' | 'checkout' | 'payment-success' | 'payment-failed' | 'video-viewer' | 'teacher-dashboard' | 'admin-dashboard' | 'verify-email' | 'forgot-password';
 export type AccountType = 'student' | 'teacher' | 'admin';
+
+const roleFor = (role: AccountType): Page =>
+  role === 'admin' ? 'admin-dashboard' : role === 'teacher' ? 'teacher-dashboard' : 'dashboard';
 
 const App: React.FC = () => {
   const initial = parsePath();
@@ -89,6 +94,9 @@ const App: React.FC = () => {
   const [pendingVerifyEmail, setPendingVerifyEmail] = useState<string>('');
   const { user, isLoggedIn } = useAuth();
   const prevLoggedIn = useRef(isLoggedIn);
+
+  // Per-page SEO (title, meta, JSON-LD) on every route change
+  useSeo(getSeoFor(currentPage, { courseId: selectedCourseId }));
 
   // Handle browser back/forward
   useEffect(() => {
@@ -104,6 +112,20 @@ const App: React.FC = () => {
   // Auto-redirect on login/logout
   useEffect(() => {
     if (isLoggedIn && !prevLoggedIn.current && user) {
+      const pending = sessionStorage.getItem('pendingRedirect');
+      if (pending) {
+        sessionStorage.removeItem('pendingRedirect');
+        try {
+          const { page, courseId } = JSON.parse(pending);
+          setSelectedCourseId(courseId || selectedCourseId);
+          setCurrentPage(page as Page);
+          const cp = courseId || selectedCourseId;
+          const url = cp ? `${PAGE_TO_PATH[page as Page] ?? '/'}/${cp}` : (PAGE_TO_PATH[page as Page] ?? '/');
+          window.history.pushState({ page, courseId: cp }, '', url);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        } catch {}
+      }
       const target: Page = user.role === 'admin' ? 'admin-dashboard' : (user.role === 'teacher' ? 'teacher-dashboard' : 'dashboard');
       const path = PAGE_TO_PATH[target] ?? '/';
       window.history.pushState({ page: target }, '', path);
@@ -124,9 +146,19 @@ const App: React.FC = () => {
     // Unauthenticated — redirect to login
     if (!isLoggedIn || !user) {
       if (protectedPages.includes(currentPage)) {
+        sessionStorage.setItem('pendingRedirect', JSON.stringify({ page: currentPage, courseId: selectedCourseId }));
         window.history.replaceState({ page: 'login' }, '', PAGE_TO_PATH['login']);
         setCurrentPage('login');
       }
+      return;
+    }
+
+    // Authenticated — never keep a logged-in user on login/signup pages
+    // (prevents the login page flashing while a session is still active)
+    if (currentPage === 'login' || currentPage === 'signup') {
+      const target: Page = roleFor(user.role);
+      window.history.replaceState({ page: target }, '', PAGE_TO_PATH[target]);
+      setCurrentPage(target);
       return;
     }
 
@@ -181,13 +213,15 @@ const App: React.FC = () => {
             <Stats />
             <Features />
             <PopularCourses onNavigate={navigateTo} />
-            <TeacherCTA onNavigate={navigateTo} />
+            <CurriculumContent />
+            <Testimonials />
+            <HomeComments onNavigate={navigateTo} />
           </>
         );
       case 'courses':
         return <CoursesPage onNavigate={navigateTo} isTeacher={user?.role === 'teacher'} />;
       case 'signup':
-        return <SignUpForm initialAccountType={initialAccountType} onNavigate={navigateTo} />;
+        return <SignUpForm onNavigate={navigateTo} />;
       case 'login':
         return <LoginPage onNavigate={navigateTo} />;
       case 'course-detail':
@@ -196,8 +230,6 @@ const App: React.FC = () => {
         ) : (
           <Hero onNavigate={navigateTo} />
         );
-      case 'live-stream':
-        return <LiveStreamPage onNavigate={navigateTo} />;
       case 'ai':
         return <AIPage onNavigate={navigateTo} />;
       case 'pricing':
@@ -248,18 +280,20 @@ const App: React.FC = () => {
   return (
     <>
       <ToastContainer />
-      <div className="bg-[#FEFEFE] min-h-screen flex flex-col text-[#034289] overflow-x-hidden">
+      <div className="bg-[#FEFEFE] dark:bg-[#0d1f33] min-h-screen flex flex-col text-[#1E3A8A] dark:text-slate-200 overflow-x-hidden">
         {currentPage !== 'dashboard' && currentPage !== 'video-viewer' && currentPage !== 'teacher-dashboard' && currentPage !== 'admin-dashboard' && currentPage !== 'ai' && (
           <Header onNavigate={navigateTo} currentPage={currentPage} />
         )}
         <main className={`flex-grow ${currentPage !== 'dashboard' && currentPage !== 'video-viewer' && currentPage !== 'teacher-dashboard' && currentPage !== 'admin-dashboard' && currentPage !== 'ai' ? 'pt-[82px]' : ''}`}>
-          <Suspense fallback={
-            <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="w-10 h-10 border-4 border-[#034289]/20 border-t-[#034289] rounded-full animate-spin" />
-            </div>
-          }>
-            {renderPage()}
-          </Suspense>
+          <div key={currentPage} className="page-enter">
+            <Suspense fallback={
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="w-10 h-10 border-4 border-[#1E3A8A]/20 border-t-[#1E3A8A] rounded-full animate-spin" />
+              </div>
+            }>
+              {renderPage()}
+            </Suspense>
+          </div>
         </main>
         {currentPage !== 'dashboard' && currentPage !== 'video-viewer' && currentPage !== 'teacher-dashboard' && currentPage !== 'admin-dashboard' && currentPage !== 'ai' && (
           <Footer onNavigate={navigateTo} />

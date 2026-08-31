@@ -183,3 +183,7 @@ export const fetchCourseById = async (id: number | string): Promise<{ data: Cour
         return { data: null, error: error?.message || 'Unknown error' };
     }
 };
+
+export const fetchSubjectById = async (id: string): Promise<{ data: any | null; error?: string }> => {
+    return fetchCourseById(id);
+};
