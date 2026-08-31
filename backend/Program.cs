@@ -92,13 +92,16 @@ namespace elmanassa
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    var allowedOrigins = new[]
-                    {
-                        "https://mohamed-atta.com",
-                        "https://www.mohamed-atta.com",
-                        "http://localhost:5173",
-                        "http://localhost:3000",
-                    };
+                    var configured = builder.Configuration["App:AllowedOrigins"];
+                    var allowedOrigins = string.IsNullOrWhiteSpace(configured)
+                        ? new[]
+                        {
+                            "https://mohamed-atta.com",
+                            "https://www.mohamed-atta.com",
+                            "http://localhost:5173",
+                            "http://localhost:3000",
+                        }
+                        : configured.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                     policy.WithOrigins(allowedOrigins)
                           .AllowAnyHeader()
                           .AllowAnyMethod()

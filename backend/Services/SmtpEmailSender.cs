@@ -15,12 +15,14 @@ namespace elmanassa.Services
             _logger = logger;
         }
 
+        private string Brand(string key) => _config[$"Branding:{key}"] ?? "";
+
         public async Task SendEmailAsync(string toEmail, string subject, string htmlBody)
         {
             var host = _config["Email:Host"] ?? "127.0.0.1";
             var port = int.TryParse(_config["Email:Port"], out var p) ? p : 25;
-            var from = _config["Email:FromAddress"] ?? "noreply@mohamed-atta.com";
-            var fromName = _config["Email:FromName"] ?? "محمد عطا - شرح Science";
+            var from = _config["Email:FromAddress"] ?? "noreply@elanmassa.com";
+            var fromName = _config["Email:FromName"] ?? "منصة تعليمية";
 
             using var client = new SmtpClient(host, port)
             {
@@ -53,6 +55,11 @@ namespace elmanassa.Services
 
         public async Task SendVerificationCodeAsync(string toEmail, string code)
         {
+            var brand = Brand("EmailBrandName");
+            var tagline = Brand("EmailTagline");
+            var footerLink = _config["App:FrontendUrl"] ?? "https://elanmassa.com";
+            var year = Brand("EmailCopyrightYear");
+
             var html = $@"
 <!DOCTYPE html>
 <html dir='rtl' lang='ar'>
@@ -65,8 +72,8 @@ namespace elmanassa.Services
     <!-- Header -->
     <tr>
         <td style='background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%); padding:32px 40px; text-align:center;'>
-            <div style='font-size:28px; font-weight:bold; color:#ffffff; letter-spacing:2px;'>محمد عطا - شرح Science</div>
-            <div style='font-size:13px; color:rgba(255,255,255,0.7); margin-top:6px;'>منصة تعليمية متكاملة لعلوم المرحلة الابتدائية والثانوية</div>
+            <div style='font-size:28px; font-weight:bold; color:#ffffff; letter-spacing:2px;'>{brand}</div>
+            <div style='font-size:13px; color:rgba(255,255,255,0.7); margin-top:6px;'>{tagline}</div>
         </td>
     </tr>
 
@@ -75,7 +82,7 @@ namespace elmanassa.Services
         <td style='padding:36px 40px;'>
             <p style='font-size:16px; color:#333; margin:0 0 8px;'>مرحباً،</p>
             <p style='font-size:15px; color:#666; line-height:1.7; margin:0 0 24px;'>
-                شكراً لتسجيلك في منصة محمد عطا. استخدم رمز التحقق أدناه لتفعيل حسابك.
+                شكراً لتسجيلك في منصة {brand}. استخدم رمز التحقق أدناه لتفعيل حسابك.
             </p>
 
             <!-- Code Box -->
@@ -99,10 +106,10 @@ namespace elmanassa.Services
     <!-- Footer -->
     <tr>
         <td style='background:#f8fafb; padding:24px 40px; text-align:center; border-top:1px solid #eee;'>
-            <div style='font-size:13px; color:#1E3A8A; font-weight:bold; margin-bottom:6px;'>محمد عطا - شرح Science</div>
+            <div style='font-size:13px; color:#1E3A8A; font-weight:bold; margin-bottom:6px;'>{brand}</div>
             <div style='font-size:11px; color:#999; line-height:1.6;'>
-                © 2026 محمد عطا - شرح Science. جميع الحقوق محفوظة.<br>
-                <a href='https://mohamed-atta.com' style='color:#1E3A8A; text-decoration:none;'>mohamed-atta.com</a>
+                © {year} {brand}. جميع الحقوق محفوظة.<br>
+                <a href='{footerLink}' style='color:#1E3A8A; text-decoration:none;'>{footerLink}</a>
             </div>
         </td>
     </tr>
@@ -113,11 +120,15 @@ namespace elmanassa.Services
 </body>
 </html>";
 
-            await SendEmailAsync(toEmail, "رمز التحقق - محمد عطا", html);
+            await SendEmailAsync(toEmail, $"رمز التحقق - {brand}", html);
         }
 
         public async Task SendPasswordResetAsync(string toEmail, string resetLink)
         {
+            var brand = Brand("EmailBrandName");
+            var footerLink = _config["App:FrontendUrl"] ?? "https://elanmassa.com";
+            var year = Brand("EmailCopyrightYear");
+
             var html = $@"
 <!DOCTYPE html>
 <html dir='rtl' lang='ar'>
@@ -130,7 +141,7 @@ namespace elmanassa.Services
     <!-- Header -->
     <tr>
         <td style='background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%); padding:32px 40px; text-align:center;'>
-            <div style='font-size:28px; font-weight:bold; color:#ffffff; letter-spacing:2px;'>محمد عطا - شرح Science</div>
+            <div style='font-size:28px; font-weight:bold; color:#ffffff; letter-spacing:2px;'>{brand}</div>
             <div style='font-size:13px; color:rgba(255,255,255,0.7); margin-top:6px;'>إعادة تعيين كلمة المرور</div>
         </td>
     </tr>
@@ -165,10 +176,10 @@ namespace elmanassa.Services
     <!-- Footer -->
     <tr>
         <td style='background:#f8fafb; padding:24px 40px; text-align:center; border-top:1px solid #eee;'>
-            <div style='font-size:13px; color:#1E3A8A; font-weight:bold; margin-bottom:6px;'>محمد عطا - شرح Science</div>
+            <div style='font-size:13px; color:#1E3A8A; font-weight:bold; margin-bottom:6px;'>{brand}</div>
             <div style='font-size:11px; color:#999; line-height:1.6;'>
-                © 2026 محمد عطا - شرح Science. جميع الحقوق محفوظة.<br>
-                <a href='https://mohamed-atta.com' style='color:#1E3A8A; text-decoration:none;'>mohamed-atta.com</a>
+                © {year} {brand}. جميع الحقوق محفوظة.<br>
+                <a href='{footerLink}' style='color:#1E3A8A; text-decoration:none;'>{footerLink}</a>
             </div>
         </td>
     </tr>
@@ -179,7 +190,7 @@ namespace elmanassa.Services
 </body>
 </html>";
 
-            await SendEmailAsync(toEmail, "إعادة تعيين كلمة المرور - محمد عطا", html);
+            await SendEmailAsync(toEmail, $"إعادة تعيين كلمة المرور - {brand}", html);
         }
     }
 }

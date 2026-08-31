@@ -162,7 +162,7 @@ namespace elmanassa.Controllers
 
             string? receivedHmac = query["hmac"];
             string? hmacSecret = _configuration["Paymob:HMAC"];
-                    string frontendUrl = (_configuration["App:FrontendUrl"] ?? "https://mohamed-atta.com").TrimEnd('/');
+                    string frontendUrl = (_configuration["App:FrontendUrl"] ?? "https://elanmassa.com").TrimEnd('/');
 
             if (string.IsNullOrEmpty(receivedHmac) || string.IsNullOrEmpty(hmacSecret))
             {
@@ -261,7 +261,7 @@ namespace elmanassa.Controllers
                     }
 
                     // Redirect to frontend
-            string frontendUrl = (_configuration["App:FrontendUrl"] ?? "https://mohamed-atta.com").TrimEnd('/');
+            string frontendUrl = (_configuration["App:FrontendUrl"] ?? "https://elanmassa.com").TrimEnd('/');
                     return isSuccess
                         ? Redirect($"{frontendUrl}/payment-success?ref={Uri.EscapeDataString(merchantOrderId)}")
                         : Redirect($"{frontendUrl}/payment-failed?ref={Uri.EscapeDataString(merchantOrderId)}");

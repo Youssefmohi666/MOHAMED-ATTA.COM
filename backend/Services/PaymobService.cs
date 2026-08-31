@@ -34,6 +34,7 @@ namespace elmanassa.Services
 
         public async Task<PaymobPaymentResponseDTO> CreatePaymentAsync(Guid userId, PaymobCreatePaymentDTO dto)
         {
+            var baseUrl = (_configuration["App:FrontendUrl"] ?? "https://elanmassa.com").TrimEnd('/');
             // ── 1. Validate subject ──────────────────────────────────────────
             var subject = await _context.Subjects.FirstOrDefaultAsync(s => s.Id == dto.SubjectId)
                 ?? throw new InvalidOperationException("SUBJECT_NOT_FOUND");
@@ -159,8 +160,8 @@ namespace elmanassa.Services
                 special_reference = merchantOrderId,
                 merchant_order_id = merchantOrderId,
                 expiration = 3600,
-                notification_url = "https://mohamed-atta.com/api/v1/payment/webhook",
-                redirect_url = "https://mohamed-atta.com/api/v1/payment/callback"
+                notification_url = $"{baseUrl}/api/v1/payment/webhook",
+                redirect_url = $"{baseUrl}/api/v1/payment/callback"
             };
 
             // ── 11. Call Paymob Intention API ────────────────────────────────

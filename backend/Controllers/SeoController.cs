@@ -45,7 +45,7 @@ namespace elmanassa.Controllers
 
                 var data = new SeoSitemapDTO
                 {
-                    SiteName = "أكاديمية محمد عطا",
+                    SiteName = _configuration["Branding:SiteName"] ?? "منصة تعليمية",
                     BaseUrl = baseUrl,
                     StaticRouteCount = 10,
                     Courses = courses

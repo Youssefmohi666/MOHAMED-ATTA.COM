@@ -19,11 +19,13 @@ namespace elmanassa.Services
     {
         private readonly AppDbContext _context;
         private readonly ILogger<LiveStreamService> _logger;
+        private readonly IConfiguration _config;
 
-        public LiveStreamService(AppDbContext context, ILogger<LiveStreamService> logger)
+        public LiveStreamService(AppDbContext context, ILogger<LiveStreamService> logger, IConfiguration config)
         {
             _context = context;
             _logger = logger;
+            _config = config;
         }
 
         public async Task<List<LiveStreamDTO>> GetActiveStreamsAsync(int page = 1, int perPage = 10)
@@ -99,6 +101,7 @@ namespace elmanassa.Services
         {
             try
             {
+                var baseUrl = (_config["App:FrontendUrl"] ?? "https://elanmassa.com").TrimEnd('/');
                 var stream = new LiveStream
                 {
                     InstructorId = teacherId,
@@ -108,7 +111,7 @@ namespace elmanassa.Services
                     ViewerCount = 0,
                     ScheduledAt = DateTime.UtcNow,
                     StartedAt = DateTime.UtcNow,
-                    StreamUrl = $"https://mohamed-atta.com/live/{Guid.NewGuid()}",
+                    StreamUrl = $"{baseUrl}/live/{Guid.NewGuid()}",
                     CreatedAt = DateTime.UtcNow
                 };
 
