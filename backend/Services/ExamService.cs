@@ -234,6 +234,7 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
                 {
                     Id = q.Id,
                     Text = q.Text,
+                    ImageUrl = q.ImageUrl,
                     Options = q.Options,
                     Points = q.Points
                 }).ToList()
@@ -242,19 +243,25 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
 
         public async Task<List<ExamListItemDTO>> GetTeacherExamsAsync(Guid teacherId)
         {
-            return await _context.Set<Exam>()
+            var exams = await _context.Set<Exam>()
                 .Where(e => e.TeacherId == teacherId)
                 .OrderByDescending(e => e.CreatedAt)
-                .Select(e => new ExamListItemDTO
+                .ToListAsync();
+
+            return exams.Select(e =>
+            {
+                var questions = JsonSerializer.Deserialize<List<ExamQuestionDTO>>(e.QuestionsJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                return new ExamListItemDTO
                 {
                     Id = e.Id,
                     Title = e.Title,
                     DurationMinutes = e.DurationMinutes,
-                    QuestionCount = 0,
+                    QuestionCount = questions.Count,
                     Status = e.Status,
                     CreatedAt = e.CreatedAt
-                })
-                .ToListAsync();
+                };
+            }).ToList();
         }
 
         public async Task<ExamDetailDTO?> UpdateExamAsync(Guid id, Guid teacherId, ExamUpdateDTO dto)
@@ -290,7 +297,7 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
                 Status = exam.Status, CreatedAt = exam.CreatedAt, SubjectId = exam.SubjectId,
                 Questions = questions.Select(q => new ExamQuestionViewDTO
                 {
-                    Id = q.Id, Text = q.Text, Options = q.Options, Points = q.Points
+                    Id = q.Id, Text = q.Text, ImageUrl = q.ImageUrl, Options = q.Options, Points = q.Points
                 }).ToList()
             };
         }
@@ -309,15 +316,21 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
 
         public async Task<List<ExamListItemDTO>> GetAvailableExamsAsync()
         {
-            return await _context.Set<Exam>()
+            var exams = await _context.Set<Exam>()
                 .Where(e => e.Status == "published")
                 .OrderByDescending(e => e.CreatedAt)
-                .Select(e => new ExamListItemDTO
+                .ToListAsync();
+
+            return exams.Select(e =>
+            {
+                var questions = JsonSerializer.Deserialize<List<ExamQuestionDTO>>(e.QuestionsJson,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                return new ExamListItemDTO
                 {
                     Id = e.Id, Title = e.Title, DurationMinutes = e.DurationMinutes,
-                    QuestionCount = 0, Status = e.Status, CreatedAt = e.CreatedAt
-                })
-                .ToListAsync();
+                    QuestionCount = questions.Count, Status = e.Status, CreatedAt = e.CreatedAt
+                };
+            }).ToList();
         }
 
         public async Task<bool> DeleteExamAsync(Guid id, Guid teacherId)

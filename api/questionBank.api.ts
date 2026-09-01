@@ -3,6 +3,7 @@ import { apiRequest } from "./client";
 export interface BankQuestion {
     id: string;
     text: string;
+    imageUrl?: string | null;
     options: string[];
     correctAnswer: number;
     points: number;
@@ -29,6 +30,7 @@ export function fetchBankQuestions(params: {
 
 export function createBankQuestion(data: {
     text: string;
+    imageUrl?: string;
     options: string[];
     correctAnswer: number;
     points?: number;
@@ -43,6 +45,7 @@ export function createBankQuestion(data: {
 
 export function updateBankQuestion(id: string, data: {
     text: string;
+    imageUrl?: string;
     options: string[];
     correctAnswer: number;
     points?: number;

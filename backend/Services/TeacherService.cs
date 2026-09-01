@@ -20,6 +20,7 @@ namespace elmanassa.Services
         Task<bool> PublishSubjectAsync(Guid subjectId, Guid teacherId, string status);
         Task<TeacherStatsDTO?> GetTeacherStatsAsync(Guid teacherId);
         Task<List<StudentDTO>> GetTeacherStudentsAsync(Guid teacherId, string? search = null, int page = 1, int perPage = 20);
+        Task<StudentDetailDTO?> GetStudentDetailAsync(Guid teacherId, Guid studentId);
     }
 
     public class TeacherService : ITeacherService
@@ -265,6 +266,55 @@ namespace elmanassa.Services
                 .ToListAsync();
         }
 
+        public async Task<StudentDetailDTO?> GetStudentDetailAsync(Guid teacherId, Guid studentId)
+        {
+            var student = await _context.Users.FirstOrDefaultAsync(u => u.Id == studentId && u.Role == "student");
+            if (student == null) return null;
+
+            var isEnrolledInTeacherSubjects = await _context.Enrollments
+                .AnyAsync(e => e.UserId == studentId && e.Subject != null && e.Subject.TeacherId == teacherId);
+            if (!isEnrolledInTeacherSubjects) return null;
+
+            var subjects = await _context.Enrollments
+                .Where(e => e.UserId == studentId && e.Subject != null && e.Subject.TeacherId == teacherId)
+                .Include(e => e.Subject)
+                .Select(e => e.Subject!)
+                .Distinct()
+                .ToListAsync();
+
+            var subjectIds = subjects.Select(s => s.Id).ToList();
+
+            var progress = await _context.LectureProgress
+                .Where(lp => lp.UserId == studentId && lp.Lecture != null &&
+                             lp.Lecture.Level != null && lp.Lecture.Level.SubjectId != Guid.Empty &&
+                             subjectIds.Contains(lp.Lecture.Level.SubjectId))
+                .Select(lp => new { lp.LectureId, lp.Completed, lp.LastWatchedAt })
+                .ToListAsync();
+
+            var enrollments = await _context.Enrollments
+                .Where(e => e.UserId == studentId && e.Subject != null && e.Subject.TeacherId == teacherId)
+                .Include(e => e.Subject)
+                .ToListAsync();
+
+            return new StudentDetailDTO
+            {
+                Id = student.Id,
+                Name = student.Name,
+                Email = student.Email,
+                PhoneNumber = student.PhoneNumber,
+                AvatarUrl = student.AvatarUrl,
+                EnrolledAt = enrollments.Count > 0 ? enrollments.Max(e => e.EnrolledAt) : null,
+                Subjects = subjects.Select(s => new StudentSubjectDTO
+                {
+                    SubjectId = s.Id,
+                    SubjectName = s.Name,
+                    ProgressPercent = progress.Count > 0
+                        ? Math.Round((double)progress.Count(p => p.Completed) / progress.Count * 100, 1)
+                        : 0
+                }).ToList()
+            };
+        }
+
         private async Task<SubjectDTO?> GetSubjectDTOAsync(Guid subjectId)
         {
             return await _context.Subjects
@@ -322,5 +372,25 @@ namespace elmanassa.Services
         public string Name { get; set; }
         public string Email { get; set; }
         public string? AvatarUrl { get; set; }
+    }
+
+    public class StudentDetailDTO
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? AvatarUrl { get; set; }
+        public DateTime? EnrolledAt { get; set; }
+        public List<StudentSubjectDTO> Subjects { get; set; } = new();
+    }
+
+    public class StudentSubjectDTO
+    {
+        public Guid SubjectId { get; set; }
+        public string SubjectName { get; set; }
+        public double ProgressPercent { get; set; }
+        public int CompletedLectures { get; set; }
+        public int TotalLectures { get; set; }
     }
 }

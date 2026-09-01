@@ -68,6 +68,10 @@ namespace elmanassa.ApplicationDbContext
         public DbSet<ExamAttempt> ExamAttempts { get; set; }
         #endregion
 
+        #region QuestionBank
+        public DbSet<BankQuestion> BankQuestions { get; set; }
+        #endregion
+
         #region Legacy (Keep for intermediate migration)
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
@@ -76,6 +80,13 @@ namespace elmanassa.ApplicationDbContext
 
         #region Attendance
         public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+        #endregion
+
+        #region Analytics
+        public DbSet<Assessment> Assessments { get; set; }
+        public DbSet<AssessmentGrade> AssessmentGrades { get; set; }
+        public DbSet<ClassRoom> ClassRooms { get; set; }
+        public DbSet<AttendanceLog> AttendanceLogs { get; set; }
         #endregion
 
         #region Employees
@@ -355,6 +366,71 @@ namespace elmanassa.ApplicationDbContext
             modelBuilder.Entity<AttendanceRecord>().HasIndex(a => a.SubjectId);
             modelBuilder.Entity<AttendanceRecord>().HasIndex(a => a.Date);
             modelBuilder.Entity<AttendanceRecord>().HasIndex(a => a.Status);
+
+            // ===== Analytics Configuration =====
+            modelBuilder.Entity<ClassRoom>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Id).ValueGeneratedNever();
+                entity.HasOne(c => c.Subject)
+                    .WithMany()
+                    .HasForeignKey(c => c.SubjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(c => c.SubjectId);
+            });
+
+            modelBuilder.Entity<Assessment>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+                entity.Property(a => a.Id).ValueGeneratedNever();
+                entity.HasOne(a => a.Subject)
+                    .WithMany()
+                    .HasForeignKey(a => a.SubjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(a => a.ClassRoom)
+                    .WithMany()
+                    .HasForeignKey(a => a.ClassRoomId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasIndex(a => a.SubjectId);
+                entity.HasIndex(a => a.ClassRoomId);
+            });
+
+            modelBuilder.Entity<AssessmentGrade>(entity =>
+            {
+                entity.HasKey(g => g.Id);
+                entity.Property(g => g.Id).ValueGeneratedNever();
+                entity.HasOne(g => g.Assessment)
+                    .WithMany()
+                    .HasForeignKey(g => g.AssessmentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(g => g.User)
+                    .WithMany()
+                    .HasForeignKey(g => g.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(g => g.AssessmentId);
+                entity.HasIndex(g => g.UserId);
+            });
+
+            modelBuilder.Entity<AttendanceLog>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+                entity.Property(a => a.Id).ValueGeneratedNever();
+                entity.HasOne(a => a.Student)
+                    .WithMany()
+                    .HasForeignKey(a => a.StudentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(a => a.Subject)
+                    .WithMany()
+                    .HasForeignKey(a => a.SubjectId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(a => a.ClassRoom)
+                    .WithMany()
+                    .HasForeignKey(a => a.ClassRoomId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasIndex(a => a.StudentId);
+                entity.HasIndex(a => a.SubjectId);
+                entity.HasIndex(a => a.ClassRoomId);
+            });
 
             // ===== Employee Configuration =====
             modelBuilder.Entity<Employee>().HasIndex(e => e.Position);

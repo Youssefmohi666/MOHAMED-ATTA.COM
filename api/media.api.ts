@@ -312,3 +312,60 @@ export async function getStreamWithProgress(
 
   return new Blob(chunks);
 }
+
+// ── Question image helpers ────────────────────────────────────────
+
+/** Build a full URL that includes ?token= so <img> tags work for auth-gated images. */
+export function authedImageUrl(urlOrPath: string): string {
+  const token = getToken();
+  const full = urlOrPath.startsWith("http")
+    ? urlOrPath
+    : urlOrPath.startsWith("/")
+    ? `${API_BASE}${urlOrPath}`
+    : `${API_BASE}/media/image/${urlOrPath}`;
+  return `${full}${full.includes("?") ? "&" : "?"}token=${encodeURIComponent(token || "")}`;
+}
+
+/** Upload an image file (PNG/JPEG/etc.) returning the created MediaFile. */
+export async function uploadQuestionImage(
+  file: File,
+  onProgress?: (pct: number) => void
+): Promise<MediaFile> {
+  return _uploadFile(file, "document", undefined, onProgress);
+}
+
+// ── PDF snipping helpers ──────────────────────────────────────────
+
+export interface PdfInfo {
+  pageCount: number;
+}
+
+/** Returns metadata (page count) for a PDF stored in media. */
+export function getPdfInfo(pdfMediaId: string): Promise<PdfInfo> {
+  return apiRequest(`/media/pdf/${pdfMediaId}/info`).then(
+    (j) => j.data as PdfInfo
+  );
+}
+
+/** Returns the authenticated URL to render a single PDF page as PNG (150 DPI).
+ *  Use this as <img src={...}> inside teacher's PDF snip viewer. */
+export function getPdfPageUrl(pdfMediaId: string, page: number): string {
+  const token = getToken();
+  return `${API_BASE}/media/pdf/${pdfMediaId}/page/${page}?token=${encodeURIComponent(token || "")}`;
+}
+
+export interface SnipResult {
+  mediaFileId: string;
+  imageUrl: string;
+}
+
+/** Crops a rectangular region of a PDF page and returns a new image media file. */
+export function snipPdf(
+  pdfMediaId: string,
+  data: { page: number; x: number; y: number; width: number; height: number }
+): Promise<SnipResult> {
+  return apiRequest(`/media/pdf/${pdfMediaId}/snip`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  }).then((j) => j.data as SnipResult);
+}

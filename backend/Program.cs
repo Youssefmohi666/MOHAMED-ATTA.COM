@@ -29,6 +29,18 @@ namespace elmanassa
             var secretKey = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
             var key = Encoding.ASCII.GetBytes(secretKey);
 
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = jwtSettings["Issuer"] ?? "elmanassa-api",
+                ValidateAudience = true,
+                ValidAudience = jwtSettings["Audience"] ?? "elmanassa-clients",
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -36,17 +48,7 @@ namespace elmanassa
             })
             .AddJwtBearer(options =>
             {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidIssuer = jwtSettings["Issuer"] ?? "elmanassa-api",
-                    ValidateAudience = true,
-                    ValidAudience = jwtSettings["Audience"] ?? "elmanassa-clients",
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
-                };
+                options.TokenValidationParameters = tokenValidationParameters;
             });
 
             // Register services
@@ -72,10 +74,13 @@ namespace elmanassa
 
             // Exam service
             builder.Services.AddScoped<IExamService, ExamService>();
+            builder.Services.AddScoped<IQuestionBankService, QuestionBankService>();
+            builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
             // Media services
             builder.Services.AddScoped<IMediaService, MediaService>();
             builder.Services.AddScoped<IHlsService, HlsService>();
+            builder.Services.AddScoped<IPdfService, PdfService>();
             builder.Services.AddSingleton<ISignedUrlService, SignedUrlService>();
 
             // Payment service
@@ -217,6 +222,7 @@ namespace elmanassa
             app.UseRateLimiter();
 
             app.UseAuthentication();
+            app.UseMiddleware<MediaQueryTokenMiddleware>(tokenValidationParameters);
             app.UseAuthorization();
 
             app.MapControllers();

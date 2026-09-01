@@ -20,6 +20,8 @@ namespace elmanassa.Services
             Guid? lectureId = null,
             CompressionSettingsDto? settings = null);
 
+        Task<MediaFile?> SaveImageAsync(byte[] bytes, string originalName);
+
         Task<MediaFileDto?> GetMediaFileAsync(Guid id);
         Task<List<MediaFileDto>> GetMediaFilesBySubjectAsync(Guid subjectId);
         Task<List<MediaFileDto>> GetMediaFilesByLectureAsync(Guid lectureId);
@@ -630,6 +632,51 @@ namespace elmanassa.Services
         {
             var file = await _context.MediaFiles.FindAsync(id);
             return file == null ? null : MapToDto(file);
+        }
+
+        public async Task<MediaFile?> SaveImageAsync(byte[] bytes, string originalName)
+        {
+            try
+            {
+                if (bytes == null || bytes.Length == 0)
+                {
+                    _logger.LogWarning("No bytes provided to SaveImageAsync");
+                    return null;
+                }
+
+                var dir = Path.Combine(_uploadPath, "images");
+                Directory.CreateDirectory(dir);
+
+                var fileName = $"{Guid.NewGuid()}.png";
+                var path = Path.Combine(dir, fileName);
+                if (!IsValidFilePath(_uploadPath, path))
+                    throw new InvalidOperationException("Invalid output path");
+
+                await System.IO.File.WriteAllBytesAsync(path, bytes);
+
+                var mediaFile = new MediaFile
+                {
+                    OriginalFileName = SanitizeFileName(originalName + ".png"),
+                    StoredFileName = fileName,
+                    FileType = "image",
+                    CompressionType = "none",
+                    OriginalSize = bytes.Length,
+                    CompressedSize = bytes.Length,
+                    FilePath = path,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.MediaFiles.Add(mediaFile);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Snip image saved: {Id} ({Size}B)", mediaFile.Id, bytes.Length);
+                return mediaFile;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving snip image");
+                return null;
+            }
         }
 
         public async Task<MediaFile?> GetMediaFileInternalAsync(Guid id)

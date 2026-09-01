@@ -5,6 +5,8 @@ import {
 } from '../../api/questionBank.api';
 import { fetchTeacherSubjects } from '../../api/teacher.api';
 import { useToast } from '../../contexts/ToastContext';
+import { uploadQuestionImage, authedImageUrl } from '../../api/media.api';
+import PdfSnipModal from './PdfSnipModal';
 
 interface SubjectOption {
     id: string;
@@ -15,6 +17,7 @@ interface SubjectOption {
 
 interface QuestionForm {
     text: string;
+    imageUrl: string;
     options: string[];
     correctAnswer: number;
     points: number;
@@ -24,6 +27,7 @@ interface QuestionForm {
 
 const emptyForm = (): QuestionForm => ({
     text: '',
+    imageUrl: '',
     options: ['', '', '', ''],
     correctAnswer: 0,
     points: 1,
@@ -55,6 +59,11 @@ const QuestionBank: React.FC = () => {
     const [editing, setEditing] = useState<BankQuestion | null>(null);
     const [form, setForm] = useState<QuestionForm>(emptyForm());
     const [saving, setSaving] = useState(false);
+
+    // Image / PDF snipping
+    const [uploading, setUploading] = useState(false);
+    const [showPdfSnip, setShowPdfSnip] = useState(false);
+    const [pdfMediaId, setPdfMediaId] = useState('');
 
     const loadQuestions = async () => {
         setLoading(true);
@@ -99,6 +108,7 @@ const QuestionBank: React.FC = () => {
         setEditing(q);
         setForm({
             text: q.text,
+            imageUrl: q.imageUrl || '',
             options: q.options?.length === 4 ? q.options : ['', '', '', ''],
             correctAnswer: q.correctAnswer,
             points: q.points ?? 1,
@@ -119,6 +129,7 @@ const QuestionBank: React.FC = () => {
         if (form.options.some(o => !o.trim())) { showToast('يرجى تعبئة جميع الخيارات الأربعة', 'error'); return; }
         const payload = {
             text: form.text.trim(),
+            imageUrl: form.imageUrl || undefined,
             options: form.options.map(o => o.trim()),
             correctAnswer: form.correctAnswer,
             points: form.points > 0 ? form.points : 1,
@@ -142,6 +153,39 @@ const QuestionBank: React.FC = () => {
             setSelected(prev => { const next = new Set(prev); next.delete(id); return next; });
             loadQuestions();
         } catch { showToast('فشل حذف السؤال', 'error'); }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        setUploading(true);
+        try {
+            const media = await uploadQuestionImage(file);
+            setForm(prev => ({ ...prev, imageUrl: `/api/v1/media/image/${media.id}` }));
+            showToast('تم رفع الصورة', 'success');
+        } catch { showToast('فشل رفع الصورة', 'error'); }
+        setUploading(false);
+    };
+
+    const handleSnipResult = (imageUrl: string) => {
+        setForm(prev => ({ ...prev, imageUrl }));
+        setShowPdfSnip(false);
+        showToast('تم قص الصورة بنجاح', 'success');
+    };
+
+    const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        setUploading(true);
+        try {
+            const media = await uploadQuestionImage(file);
+            setPdfMediaId(media.id);
+            setShowPdfSnip(true);
+            showToast('تم رفع ملف PDF', 'success');
+        } catch { showToast('فشل رفع ملف PDF', 'error'); }
+        setUploading(false);
     };
 
     const handleBuild = async () => {
@@ -272,6 +316,10 @@ const QuestionBank: React.FC = () => {
                                                 {isSel && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3"><path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                                             </button>
                                             <div className="flex-1 min-w-0">
+                                                {q.imageUrl && (
+                                                    <img src={authedImageUrl(q.imageUrl)} alt="صورة السؤال"
+                                                        className="w-full max-h-40 object-contain bg-white border border-slate-200 rounded-xl mb-3 p-1" />
+                                                )}
                                                 <p className="text-[14px] font-bold text-[#0f2233] mb-2 font-cairo">{q.text}</p>
                                                 <div className="space-y-1.5 mb-3">
                                                     {q.options.map((opt, j) => (
@@ -325,6 +373,42 @@ const QuestionBank: React.FC = () => {
                             placeholder="اكتب نص السؤال..."
                             className={`${inputCls} mb-4`} />
 
+                        <label className="block text-xs text-slate-500 mb-1.5 font-cairo">صورة السؤال (اختياري)</label>
+                        {form.imageUrl && (
+                            <div className="flex items-start gap-3 mb-2">
+                                <img src={authedImageUrl(form.imageUrl)} alt="صورة السؤال"
+                                    className="w-32 h-24 object-contain bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0" />
+                                <button onClick={() => setFormField('imageUrl', '')}
+                                    className="mt-1 px-3 py-1.5 rounded-lg bg-red-50 border border-red-100 text-[#DC2626] text-xs font-semibold hover:bg-red-100 transition-colors duration-200 cursor-pointer font-cairo">
+                                    إزالة الصورة
+                                </button>
+                            </div>
+                        )}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            <label className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-50 border border-sky-100 text-sky-700 text-[12px] font-semibold hover:bg-sky-100 transition-colors duration-200 cursor-pointer font-cairo ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" strokeLinecap="round" strokeLinejoin="round"/><polyline points="17 8 12 3 7 8" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                {uploading ? 'جاري الرفع...' : 'رفع صورة'}
+                                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                            </label>
+                            <button onClick={() => setShowPdfSnip(true)}
+                                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 text-[12px] font-semibold hover:bg-amber-100 transition-colors duration-200 cursor-pointer font-cairo`}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 15h6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                قص من PDF
+                            </button>
+                        </div>
+                        {showPdfSnip && (
+                            <div className="mb-4 bg-amber-50/50 border border-amber-100 rounded-xl p-3">
+                                <label className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-amber-200 text-amber-600 text-[12px] font-semibold hover:bg-amber-50 transition-colors duration-200 cursor-pointer font-cairo ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 15h6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                    {uploading ? 'جاري رفع الـ PDF...' : 'رفع ملف PDF للقص منه'}
+                                    <input type="file" accept="application/pdf" onChange={handlePdfUpload} className="hidden" />
+                                </label>
+                                <p className="text-[11px] text-slate-400 mt-2 text-center font-cairo leading-relaxed">
+                                    ارفع ملف الـ PDF، ثم اسحب على أي صفحة لتحديد منطقة السؤال.
+                                </p>
+                            </div>
+                        )}
+
                         <label className="block text-xs text-slate-500 mb-1.5 font-cairo">الخيارات (حدد الإجابة الصحيحة)</label>
                         <div className="space-y-2 mb-4">
                             {form.options.map((opt, oi) => (
@@ -377,6 +461,14 @@ const QuestionBank: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showPdfSnip && pdfMediaId && (
+                <PdfSnipModal
+                    pdfMediaId={pdfMediaId}
+                    onCancel={() => setShowPdfSnip(false)}
+                    onSnip={handleSnipResult}
+                />
             )}
 
             {/* Build exam modal */}

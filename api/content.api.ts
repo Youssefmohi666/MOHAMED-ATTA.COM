@@ -10,7 +10,7 @@ export function getStats() {
 
 export async function getTestimonials() {
     try {
-        const json = await apiRequest("/content/testimonials");
+        const json = await apiRequest("/testimonials");
         const raw = Array.isArray(json) ? json : (json.data ?? []);
         return raw.map((t: any) => ({
             id: t.id,

@@ -16,6 +16,8 @@ namespace elmanassa.Services
         Task<AiMessageDTO?> SendMessageAsync(Guid conversationId, Guid userId, string message);
         Task<bool> DeleteConversationAsync(Guid conversationId, Guid userId);
         Task<string> PublicChatAsync(string message, List<(string role, string text)> history);
+        Task<string> GenerateReportAsync(GenerateReportDTO dto);
+        Task<string> AnalyzeFileAsync(string fileName, byte[] content, string? context);
     }
 
     public class AiService : IAiService
@@ -278,6 +280,193 @@ namespace elmanassa.Services
                 _logger.LogError(ex, "OpenAI call failed");
                 return GenerateDemoReply(userMessage);
             }
+        }
+
+        public async Task<string> GenerateReportAsync(GenerateReportDTO dto)
+        {
+            var prompt = new StringBuilder();
+
+            switch (dto.ReportType)
+            {
+                case "student":
+                    prompt.AppendLine("أنت مساعد تعليمي متخصص في إعداد تقارير الطلاب. اكتب تقريراً تفصيلياً ومهنياً باللغة العربية عن أداء الطالب.");
+                    if (!string.IsNullOrWhiteSpace(dto.StudentName)) prompt.AppendLine($"اسم الطالب: {dto.StudentName}");
+                    break;
+                case "subject":
+                    prompt.AppendLine("أنت خبير تعليمي في المواد الدراسية. اكتب تقريراً تحليلياً باللغة العربية عن أداء المادة.");
+                    if (!string.IsNullOrWhiteSpace(dto.SubjectName)) prompt.AppendLine($"اسم المادة: {dto.SubjectName}");
+                    break;
+                case "class":
+                    prompt.AppendLine("أنت خبير تعليمي. اكتب تقريراً شاملاً باللغة العربية عن أداء الفصل الدراسي.");
+                    if (!string.IsNullOrWhiteSpace(dto.SubjectName)) prompt.AppendLine($"المادة: {dto.SubjectName}");
+                    break;
+                default:
+                    prompt.AppendLine("اكتب تقريراً تعليمياً باللغة العربية.");
+                    break;
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.ContextJson) && dto.ContextJson != "{}")
+                prompt.AppendLine($"بيانات سياقية (JSON): {dto.ContextJson}");
+
+            if (!string.IsNullOrWhiteSpace(dto.CustomPrompt))
+                prompt.AppendLine($"تعليمات إضافية: {dto.CustomPrompt}");
+
+            try
+            {
+                var geminiKey = _config["Gemini:ApiKey"];
+                var openAiKey = _config["OpenAI:ApiKey"];
+
+                if (!string.IsNullOrEmpty(geminiKey))
+                {
+                    var text = await CallGeminiAsync(geminiKey, prompt.ToString());
+                    if (!string.IsNullOrWhiteSpace(text) && !text.StartsWith("ERROR:"))
+                        return text;
+                }
+
+                if (!string.IsNullOrEmpty(openAiKey))
+                {
+                    return await CallOpenAIAsync(prompt.ToString(), new List<(string, string)>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Report generation failed");
+            }
+
+            return GenerateDemoReport(dto);
+        }
+
+        public async Task<string> AnalyzeFileAsync(string fileName, byte[] content, string? context)
+        {
+            try
+            {
+                var prompt = new StringBuilder();
+                prompt.AppendLine("أنت مساعد تعليمي. حلّل الملف المرفق التالي وقدم ملخصاً واضحاً ومنظماً باللغة العربية مع أبرز النقاط والملاحظات.");
+                if (!string.IsNullOrWhiteSpace(context))
+                    prompt.AppendLine($"سياق إضافي من المعلم: {context}");
+
+                var geminiKey = _config["Gemini:ApiKey"];
+                if (!string.IsNullOrEmpty(geminiKey))
+                {
+                    var text = await CallGeminiAsync(geminiKey, prompt.ToString(), fileName, content);
+                    if (!string.IsNullOrWhiteSpace(text) && !text.StartsWith("ERROR:"))
+                        return text;
+                }
+
+                var openAiKey = _config["OpenAI:ApiKey"];
+                if (!string.IsNullOrEmpty(openAiKey))
+                {
+                    return await CallOpenAIAsync($"{prompt}\n(اسم الملف: {fileName})", new List<(string, string)>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "File analysis failed");
+            }
+
+            return GenerateDemoAnalysis(fileName, context);
+        }
+
+        private async Task<string> CallGeminiAsync(string apiKey, string prompt, string? fileName = null, byte[]? fileContent = null)
+        {
+            var baseUrl = _config["Gemini:BaseUrl"] ?? "https://generativelanguage.googleapis.com/v1beta";
+            var model = _config["Gemini:Model"] ?? "gemini-1.5-flash";
+
+            var parts = new List<object> { new { text = prompt } };
+
+            if (fileContent != null && fileContent.Length > 0)
+            {
+                var mime = "application/octet-stream";
+                var ext = System.IO.Path.GetExtension(fileName ?? "").ToLower();
+                if (ext == ".pdf") mime = "application/pdf";
+                else if (ext == ".png") mime = "image/png";
+                else if (ext == ".jpg" || ext == ".jpeg") mime = "image/jpeg";
+                else if (ext == ".webp") mime = "image/webp";
+                else if (ext == ".txt") mime = "text/plain";
+
+                parts.Add(new
+                {
+                    inline_data = new
+                    {
+                        mime_type = mime,
+                        data = Convert.ToBase64String(fileContent)
+                    }
+                });
+            }
+
+            var payload = JsonSerializer.Serialize(new
+            {
+                contents = new[]
+                {
+                    new { parts }
+                },
+                generationConfig = new { temperature = 0.7, maxOutputTokens = 2048 }
+            });
+
+            var httpClient = _httpClientFactory.CreateClient();
+            var request = new HttpRequestMessage(HttpMethod.Post,
+                $"{baseUrl}/models/{model}:generateContent?key={apiKey}");
+            request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errBody = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Gemini returned {Status}: {Body}", response.StatusCode, errBody[..Math.Min(300, errBody.Length)]);
+                return "ERROR";
+            }
+
+            var body = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("candidates", out var candidates) &&
+                candidates.GetArrayLength() > 0 &&
+                candidates[0].TryGetProperty("content", out var content) &&
+                content.TryGetProperty("parts", out var partsArr) &&
+                partsArr.GetArrayLength() > 0 &&
+                partsArr[0].TryGetProperty("text", out var textEl))
+            {
+                return textEl.GetString() ?? string.Empty;
+            }
+
+            _logger.LogWarning("Gemini response had no text: {Body}", body[..Math.Min(300, body.Length)]);
+            return "ERROR";
+        }
+
+        private string GenerateDemoReport(GenerateReportDTO dto)
+        {
+            var name = string.IsNullOrWhiteSpace(dto.StudentName) ? "الطالب" : dto.StudentName;
+            var subject = string.IsNullOrWhiteSpace(dto.SubjectName) ? "المادة" : dto.SubjectName;
+
+            return $"## تقرير أداء {name}\n\n" +
+                   $"### ملخص عام\n" +
+                   $"هذا تقرير إرشادي عن أداء {name} في {subject}. يُظهر التقدم المستمر مع بعض النقاط التي تحتاج إلى تعزيز.\n\n" +
+                   $"### نقاط القوة\n" +
+                   "1. التزام بالمواعيد والمذاكرة المنتظمة.\n" +
+                   "2. مشاركة جيدة في الأنشطة والمناقشات.\n" +
+                   "3. فهم جيد للمفاهيم الأساسية.\n\n" +
+                   $"### نقاط تحتاج تحسين\n" +
+                   "1. حل المزيد من الأسئلة التدريبية لتعزيز الفهم.\n" +
+                   "2. مراجعة الدروس السابقة بانتظام.\n" +
+                   "3. التواصل مع المعلم عند مواجهة أي صعوبة.\n\n" +
+                   $"### توصيات\n" +
+                   "وضع خطة مذاكرة أسبوعية واضحة، والتركيز على حل التمارين، والمتابعة المستمرة مع المعلم لضمان أفضل النتائج.";
+        }
+
+        private string GenerateDemoAnalysis(string fileName, string? context)
+        {
+            var name = string.IsNullOrWhiteSpace(fileName) ? "الملف" : fileName;
+            var output = new System.Text.StringBuilder();
+            output.AppendLine($"## ملخص تحليل الملف: {name}\n");
+            output.AppendLine("### محتوى الملف");
+            output.AppendLine("تم استلام الملف المرفق وتحليله. يبدو أنه يحتوي على مادة تعليمية أو تدريبية مرتبطة بالمقرر.");
+            if (!string.IsNullOrWhiteSpace(context))
+                output.AppendLine($"\n### سياق المعلم\n{context}\n");
+            output.AppendLine("### أبرز النقاط");
+            output.AppendLine("1. المحتوى منظم بشكل يسهّل الفهم والمراجعة.");
+            output.AppendLine("2. يُنصح بإضافة تمارين تطبيقية بعد كل قسم.");
+            output.AppendLine("3. يمكن استخدام هذا المحتوى كمرجع أساسي للمذاكرة.");
+            output.AppendLine("\n> ملاحظة: هذا تحليل تلقائي إرشادي. لم يُستكمل التحميل إلى نموذج الذكاء الاصطناعي حالياً.");
+            return output.ToString();
         }
 
         /// <summary>

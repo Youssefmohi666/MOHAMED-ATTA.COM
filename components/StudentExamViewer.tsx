@@ -3,6 +3,7 @@ import {
     fetchAvailableExams, fetchExamDetail, submitExam,
     ExamListItem, ExamDetail, ExamResult,
 } from '../api/exams.api';
+import { authedImageUrl } from '../api/media.api';
 import { useToast } from '../contexts/ToastContext';
 
 const ARABIC_LETTERS = ['أ', 'ب', 'ج', 'د', 'ه', 'و', 'ز', 'ح'];
@@ -115,6 +116,12 @@ const ExamTakingView: React.FC<{
                 <div className="space-y-4 mb-6">
                     {exam.questions.map((q, i) => (
                         <div key={q.id} className="border border-white/[0.08] bg-[#0a0a0a] p-5">
+                            {q.imageUrl && (
+                                <div className="mb-4">
+                                    <img src={authedImageUrl(q.imageUrl)} alt="صورة السؤال"
+                                        className="max-w-full max-h-72 object-contain rounded-lg border border-white/10 bg-white p-1" />
+                                </div>
+                            )}
                             <p className="text-sm font-bold text-slate-100 mb-4 font-cairo">
                                 س {i + 1}: {q.text}
                                 <span className="text-amber-400 text-xs font-normal mr-2">({q.points} درجات)</span>

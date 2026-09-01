@@ -163,6 +163,61 @@ namespace elmanassa.Controllers
         }
 
         /// <summary>
+        /// Generate an AI report (student / subject / class) — requires authentication.
+        /// </summary>
+        [Authorize]
+        [HttpPost("generate-report")]
+        public async Task<ActionResult<ApiResponse<ReportResponseDTO>>> GenerateReport([FromBody] GenerateReportDTO model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.ReportType))
+                    return BadRequest(new ApiResponse<object>("نوع التقرير مطلوب", "VALIDATION_ERROR", false));
+
+                var report = await _aiService.GenerateReportAsync(model);
+                return Ok(new ApiResponse<ReportResponseDTO>(new ReportResponseDTO { Report = report }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating report");
+                return StatusCode(500, new ApiResponse<object>(
+                    "حدث خطأ أثناء توليد التقرير", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>
+        /// Analyze an uploaded file (PDF/image/text) — requires authentication.
+        /// </summary>
+        [Authorize]
+        [HttpPost("analyze-file")]
+        [RequestSizeLimit(15_000_000)]
+        public async Task<ActionResult<ApiResponse<FileAnalysisDTO>>> AnalyzeFile(IFormFile file, string? context)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new ApiResponse<object>("يرجى اختيار ملف", "VALIDATION_ERROR", false));
+
+                using var ms = new MemoryStream();
+                await file.CopyToAsync(ms);
+                var contentBytes = ms.ToArray();
+
+                var analysis = await _aiService.AnalyzeFileAsync(file.FileName, contentBytes, context);
+                return Ok(new ApiResponse<FileAnalysisDTO>(new FileAnalysisDTO
+                {
+                    Analysis = analysis,
+                    FileName = file.FileName
+                }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error analyzing file");
+                return StatusCode(500, new ApiResponse<object>(
+                    "حدث خطأ أثناء تحليل الملف", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>
         /// Chat with Gemini AI — requires authentication.
         /// </summary>
         [AllowAnonymous]
@@ -205,5 +260,26 @@ namespace elmanassa.DTOs
     {
         public string Message { get; set; } = string.Empty;
         public List<PublicChatMessage>? History { get; set; }
+    }
+
+    public class GenerateReportDTO
+    {
+        public string ReportType { get; set; } = "student";
+        public string? StudentName { get; set; }
+        public string? SubjectName { get; set; }
+        public string ContextJson { get; set; } = "{}";
+        public string? CustomPrompt { get; set; }
+    }
+
+    public class ReportResponseDTO
+    {
+        public string Report { get; set; } = string.Empty;
+    }
+
+    public class FileAnalysisDTO
+    {
+        public string Analysis { get; set; } = string.Empty;
+        public string? Summary { get; set; }
+        public string? FileName { get; set; }
     }
 }

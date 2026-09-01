@@ -1,4 +1,5 @@
 using elmanassa.DTOs;
+using elmanassa.Models;
 using elmanassa.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +15,13 @@ namespace elmanassa.Controllers
         private readonly IMediaService _mediaService;
         private readonly IHlsService _hlsService;
         private readonly ISignedUrlService _signedUrlService;
+        private readonly IPdfService _pdfService;
         private readonly ILogger<MediaController> _logger;
         private readonly long _maxFileSize = 5L * 1024 * 1024 * 1024; // 5 GB
         private readonly string _uploadsRoot;
         private readonly string _hlsRoot;
+
+        private const int PdfRenderDpi = 150;
 
         private static readonly Dictionary<string, string[]> AllowedContentTypes = new()
         {
@@ -25,19 +29,25 @@ namespace elmanassa.Controllers
             ["document"] = new[] { "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                "text/plain" }
+                "text/plain" },
+            ["image"] = new[] { "image/png", "image/jpeg", "image/webp", "image/gif", "image/bmp", "image/tiff" }
         };
+
+        private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+            { ".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tif", ".tiff" };
 
         public MediaController(
             IMediaService mediaService,
             IHlsService hlsService,
             ISignedUrlService signedUrlService,
+            IPdfService pdfService,
             ILogger<MediaController> logger,
             IWebHostEnvironment env)
         {
             _mediaService = mediaService;
             _hlsService = hlsService;
             _signedUrlService = signedUrlService;
+            _pdfService = pdfService;
             _logger = logger;
             _uploadsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "uploads"));
             _hlsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "uploads", "hls"));
@@ -398,6 +408,136 @@ namespace elmanassa.Controllers
             return File(stream, mimeType, enableRangeProcessing: false);
         }
 
+        [HttpGet("image/{id:guid}")]
+        [Authorize]
+        public async Task<IActionResult> GetImage(Guid id)
+        {
+            var file = await _mediaService.GetMediaFileInternalAsync(id);
+
+            if (file == null || !System.IO.File.Exists(file.FilePath))
+                return NotFound(new ApiResponse<object>("الملف غير موجود", "FILE_NOT_FOUND", false));
+
+            var ext = Path.GetExtension(file.OriginalFileName.Replace(".gz", "")).ToLowerInvariant();
+            if (!ImageExtensions.Contains(ext))
+                return BadRequest(new ApiResponse<object>("هذا الملف ليس صورة", "NOT_AN_IMAGE", false));
+
+            Response.Headers.Append("Cache-Control", "private, max-age=300");
+            return PhysicalFile(file.FilePath, GetMimeType(ext));
+        }
+
+        // ── PDF question snipping ───────────────────────────────────────────────
+
+        /// <summary>Returns PDF metadata (page count). Used by the teacher question editor.</summary>
+        [HttpGet("pdf/{id:guid}/info")]
+        [Authorize(Roles = "admin,teacher")]
+        public async Task<ActionResult<ApiResponse<PdfInfoDTO>>> GetPdfInfo(Guid id)
+        {
+            try
+            {
+                var (pdfPath, needsCleanup) = await ResolvePdfAsync(id);
+                if (pdfPath == null)
+                    return NotFound(new ApiResponse<object>("الملف غير موجود", "FILE_NOT_FOUND", false));
+                try
+                {
+                    var pageCount = await _pdfService.GetPageCountAsync(pdfPath);
+                    if (pageCount <= 0)
+                        return BadRequest(new ApiResponse<object>("تعذر قراءة ملف PDF", "INVALID_PDF", false));
+                    return Ok(new ApiResponse<PdfInfoDTO>(new PdfInfoDTO { PageCount = pageCount }));
+                }
+                finally
+                {
+                    if (needsCleanup) TryDeleteTempFile(pdfPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reading PDF info for {Id}", id);
+                return StatusCode(500, new ApiResponse<object>("حدث خطأ أثناء قراءة الملف", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>Renders a single PDF page to PNG (150 DPI). Coordinates from this
+        /// response map 1:1 to the snip endpoint.</summary>
+        [HttpGet("pdf/{id:guid}/page/{page:int}")]
+        [Authorize(Roles = "admin,teacher")]
+        public async Task<IActionResult> GetPdfPage(Guid id, int page)
+        {
+            try
+            {
+                if (page < 1)
+                    return BadRequest(new ApiResponse<object>("رقم الصفحة غير صالح", "INVALID_PAGE", false));
+
+                var (pdfPath, needsCleanup) = await ResolvePdfAsync(id);
+                if (pdfPath == null)
+                    return NotFound(new ApiResponse<object>("الملف غير موجود", "FILE_NOT_FOUND", false));
+                try
+                {
+                    var bytes = await _pdfService.RenderPageAsync(pdfPath, page, PdfRenderDpi);
+                    if (bytes.Length == 0)
+                        return NotFound(new ApiResponse<object>("تعذر عرض هذه الصفحة", "RENDER_FAILED", false));
+                    Response.Headers.Append("Cache-Control", "private, max-age=300");
+                    return File(bytes, "image/png");
+                }
+                finally
+                {
+                    if (needsCleanup) TryDeleteTempFile(pdfPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rendering PDF page {Page} for {Id}", page, id);
+                return StatusCode(500, new ApiResponse<object>("حدث خطأ أثناء عرض الصفحة", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>Crops a rectangular region from a PDF page and stores it as a new
+        /// image MediaFile for use in questions (imageUrl).</summary>
+        [HttpPost("pdf/{id:guid}/snip")]
+        [Authorize(Roles = "admin,teacher")]
+        public async Task<ActionResult<ApiResponse<PdfSnipResultDTO>>> SnipPdf(Guid id, [FromBody] PdfSnipDTO model)
+        {
+            try
+            {
+                if (model.Page < 1)
+                    return BadRequest(new ApiResponse<object>("رقم الصفحة غير صالح", "INVALID_PAGE", false));
+                if (model.Width < 10 || model.Height < 10)
+                    return BadRequest(new ApiResponse<object>("منطقة التحديد صغيرة جداً", "INVALID_REGION", false));
+                if (model.X < 0 || model.Y < 0)
+                    return BadRequest(new ApiResponse<object>("إحداثيات التحديد غير صالحة", "INVALID_REGION", false));
+
+                var (pdfPath, needsCleanup) = await ResolvePdfAsync(id);
+                if (pdfPath == null)
+                    return NotFound(new ApiResponse<object>("الملف غير موجود", "FILE_NOT_FOUND", false));
+                try
+                {
+                    var bytes = await _pdfService.CropPageAsync(pdfPath, model.Page, PdfRenderDpi,
+                        model.X, model.Y, model.Width, model.Height);
+                    if (bytes == null || bytes.Length == 0)
+                        return BadRequest(new ApiResponse<object>(
+                            "تعذر قص هذه المنطقة. تأكد من أن المنطقة داخل حدود الصفحة", "CROP_FAILED", false));
+
+                    var mediaFile = await _mediaService.SaveImageAsync(bytes, "question-snip");
+                    if (mediaFile == null)
+                        return StatusCode(500, new ApiResponse<object>("فشل حفظ الصورة", "SAVE_FAILED", false));
+
+                    return Ok(new ApiResponse<PdfSnipResultDTO>(new PdfSnipResultDTO
+                    {
+                        MediaFileId = mediaFile.Id.ToString(),
+                        ImageUrl = $"/api/v1/media/image/{mediaFile.Id}"
+                    }));
+                }
+                finally
+                {
+                    if (needsCleanup) TryDeleteTempFile(pdfPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error snipping PDF {Id}", id);
+                return StatusCode(500, new ApiResponse<object>("حدث خطأ أثناء القص", "SERVER_ERROR", false));
+            }
+        }
+
         [HttpGet("view/{id:guid}")]
         [Authorize]
         public async Task<IActionResult> ViewDocument(Guid id)
@@ -407,11 +547,21 @@ namespace elmanassa.Controllers
             if (file == null || !System.IO.File.Exists(file.FilePath))
                 return NotFound(new ApiResponse<object>("الملف غير موجود", "FILE_NOT_FOUND", false));
 
+            var originalName = file.OriginalFileName;
+            var ext = Path.GetExtension(originalName.Replace(".gz", "")).ToLowerInvariant();
+
+            // Images may be uploaded directly and are stored uncompressed — serve them inline.
+            if (ImageExtensions.Contains(ext))
+            {
+                var safeImgName = System.Text.RegularExpressions.Regex.Replace(originalName, @"[^\x20-\x7E.\-]", "_");
+                Response.Headers.Append("Content-Disposition", $"inline; filename=\"{safeImgName}\"");
+                return File(new FileStream(file.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, FileOptions.Asynchronous),
+                    GetMimeType(ext));
+            }
+
             if (file.FileType != "document")
                 return BadRequest(new ApiResponse<object>("هذا الملف ليس مستنداً", "NOT_A_DOCUMENT", false));
 
-            var originalName = file.OriginalFileName;
-            var ext = Path.GetExtension(originalName.Replace(".gz", "")).ToLowerInvariant();
             var contentType = GetMimeType(ext);
 
             // Decompress if: was compressed by us OR is already a .gz file
@@ -480,6 +630,12 @@ namespace elmanassa.Controllers
                 ".avi" => "video/x-msvideo",
                 ".mov" => "video/quicktime",
                 ".mkv" => "video/x-matroska",
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".webp" => "image/webp",
+                ".gif" => "image/gif",
+                ".bmp" => "image/bmp",
+                ".tif" or ".tiff" => "image/tiff",
                 ".pdf" => "application/pdf",
                 ".doc" => "application/msword",
                 ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -490,6 +646,44 @@ namespace elmanassa.Controllers
                 ".txt" => "text/plain; charset=utf-8",
                 _ => "application/octet-stream"
             };
+        }
+
+        /// <summary>Returns the on-disk path of a PDF (decompressing .gz storage when
+        /// needed). When it returns a temp file that must be deleted, sets
+        /// needsCleanup to true so the caller can remove it.</summary>
+        private async Task<(string? Path, bool NeedsCleanup)> ResolvePdfAsync(Guid id)
+        {
+            var file = await _mediaService.GetMediaFileInternalAsync(id);
+            if (file == null || !System.IO.File.Exists(file.FilePath))
+                return (null, false);
+
+            var isGz = file.CompressionType == "gzipped"
+                       || file.FilePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase);
+            if (!isGz)
+                return (file.FilePath, false);
+
+            var tmp = Path.Combine(Path.GetTempPath(), $"elmanassa-pdf-{Guid.NewGuid():N}.pdf");
+            await using (var inStream = new FileStream(file.FilePath, FileMode.Open, FileAccess.Read,
+                FileShare.Read, 65536, FileOptions.Asynchronous))
+            await using (var gz = new System.IO.Compression.GZipStream(inStream, System.IO.Compression.CompressionMode.Decompress))
+            await using (var outStream = new FileStream(tmp, FileMode.Create, FileAccess.Write,
+                FileShare.None, 65536, FileOptions.Asynchronous))
+            {
+                await gz.CopyToAsync(outStream);
+            }
+            return (tmp, true);
+        }
+
+        private static void TryDeleteTempFile(string path)
+        {
+            try
+            {
+                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+            }
+            catch
+            {
+                // best-effort cleanup
+            }
         }
 
         private IActionResult HandleRangeRequest(FileStream fileStream, FileInfo fileInfo, string rangeHeader)

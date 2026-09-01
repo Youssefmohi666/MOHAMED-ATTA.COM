@@ -6,6 +6,7 @@ import {
 } from '../../api/exams.api';
 import { useToast } from '../../contexts/ToastContext';
 import { fetchBankQuestions, addBankQuestionsToExam, BankQuestion } from '../../api/questionBank.api';
+import { authedImageUrl } from '../../api/media.api';
 
 const inputCls = "w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-[#0f2233] outline-none focus:border-amber-500/50 focus:ring-2 focus:ring-amber-500/10 transition font-cairo placeholder:text-slate-400";
 
@@ -250,6 +251,10 @@ const ExamViewer: React.FC = () => {
                     <div className="space-y-4">
                         {viewDetail.questions.map((q, i) => (
                             <div key={q.id} className="bg-slate-50 border border-slate-200/70 rounded-2xl p-5">
+                                {q.imageUrl && (
+                                    <img src={authedImageUrl(q.imageUrl)} alt="صورة السؤال"
+                                        className="max-h-56 object-contain bg-white border border-slate-200 rounded-xl mb-3 p-1" />
+                                )}
                                 <p className="text-[15px] font-bold text-[#0f2233] mb-4 font-cairo">{i + 1}. {q.text} <span className="text-amber-600 text-sm font-normal">({q.points} درجات)</span></p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {q.options.map((opt, j) => (
@@ -332,6 +337,10 @@ const ExamViewer: React.FC = () => {
                                                 {isSel && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3"><path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                                             </span>
                                             <span className="flex-1 min-w-0">
+                                                {q.imageUrl && (
+                                                    <img src={authedImageUrl(q.imageUrl)} alt="صورة السؤال"
+                                                        className="w-full h-28 object-contain bg-slate-50 border border-slate-200 rounded-lg mb-1.5 p-1" />
+                                                )}
                                                 <span className="block text-[13px] font-bold text-[#0f2233] mb-1 font-cairo">{q.text}</span>
                                                 <span className="flex flex-wrap gap-1.5">
                                                     <span className="text-[10px] text-amber-600 bg-amber-50 rounded px-2 py-0.5 font-bold font-cairo">{q.points ?? 1} درجة</span>

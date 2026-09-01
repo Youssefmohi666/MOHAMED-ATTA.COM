@@ -19,6 +19,8 @@ namespace elmanassa.Models
         public Guid? SubjectId { get; set; }
         public Subject Subject { get; set; }
 
+        public Guid? ClassRoomId { get; set; }
+
         public DateTime EnrolledAt { get; set; } = DateTime.UtcNow;
     }
 }

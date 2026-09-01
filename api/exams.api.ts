@@ -4,6 +4,7 @@ import { API_BASE } from "../config/api.config";
 export interface ExamQuestion {
     id: number;
     text: string;
+    imageUrl?: string;
     options: string[];
     correctAnswer: number;
     points: number;
@@ -27,7 +28,7 @@ export interface ExamDetail {
     status: string;
     createdAt: string;
     subjectId?: string;
-    questions: { id: number; text: string; options: string[]; points: number }[];
+    questions: { id: number; text: string; imageUrl?: string; options: string[]; points: number }[];
 }
 
 export interface ExamResult {

@@ -4,6 +4,7 @@ namespace elmanassa.DTOs
     {
         public int Id { get; set; }
         public string Text { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
         public List<string> Options { get; set; } = new();
         public int CorrectAnswer { get; set; }
         public int Points { get; set; } = 1;
@@ -13,6 +14,7 @@ namespace elmanassa.DTOs
     {
         public int Id { get; set; }
         public string Text { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
         public List<string> Options { get; set; } = new();
         public int Points { get; set; } = 1;
     }

@@ -229,6 +229,25 @@ namespace elmanassa.Controllers
         /// <summary>
         /// Get students enrolled in teacher's subjects
         /// </summary>
+        [HttpGet("students/{studentId}")]
+        public async Task<ActionResult<ApiResponse<StudentDetailDTO>>> GetStudentDetail(Guid studentId)
+        {
+            try
+            {
+                var teacherId = GetTeacherId();
+                var student = await _teacherService.GetStudentDetailAsync(teacherId, studentId);
+                if (student == null)
+                    return NotFound(new ApiResponse<object>("الطالب غير موجود", "NOT_FOUND", false));
+                return Ok(new ApiResponse<StudentDetailDTO>(student));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching student detail");
+                return StatusCode(500, new ApiResponse<object>(
+                    "An error occurred", "SERVER_ERROR", false));
+            }
+        }
+
         [HttpGet("students")]
         public async Task<ActionResult<ApiResponse<List<StudentDTO>>>> GetStudents(
             [FromQuery] string? search = null,
