@@ -327,3 +327,107 @@ export const createTeacherSubject = createSubject;
 export const updateTeacherSubject = updateSubject;
 export const deleteTeacherSubject = deleteSubject;
 export const publishTeacherSubject = publishSubject;
+
+// ── Student Groups (Feature 1) ───────────────────────────────────────────────
+
+export interface StudentGroupMember {
+    id?: number;
+    studentId: string;
+    studentName: string;
+    studentEmail?: string;
+    phoneNumber?: string;
+    joinedAt?: string;
+}
+
+export interface StudentGroup {
+    id: string;
+    name: string;
+    description?: string;
+    subjectId?: string | null;
+    subjectName?: string | null;
+    color: string;
+    memberCount: number;
+    createdAt: string;
+    members: StudentGroupMember[];
+}
+
+export function getStudentGroups(): Promise<{ data: StudentGroup[] }> {
+    return apiRequest("/teacher/groups");
+}
+
+export function createStudentGroup(data: {
+    name: string;
+    description?: string;
+    subjectId?: string | null;
+    color?: string;
+}) {
+    const payload = {
+        name: sanitizePlainText(data.name, 200),
+        description: data.description ? sanitizePlainText(data.description, 500) : undefined,
+        subjectId: data.subjectId || undefined,
+        color: data.color ? sanitizePlainText(data.color, 50) : undefined,
+    };
+    return apiRequest("/teacher/groups", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+}
+
+export function updateStudentGroup(id: string, data: {
+    name?: string;
+    description?: string;
+    subjectId?: string | null;
+    color?: string;
+}) {
+    if (!validateGuid(id)) throw new Error('معرف المجموعة غير صالح');
+    const payload: Record<string, any> = {};
+    if (data.name !== undefined) payload.name = sanitizePlainText(data.name, 200);
+    if (data.description !== undefined) payload.description = sanitizePlainText(data.description, 500);
+    if (data.color !== undefined) payload.color = sanitizePlainText(data.color, 50);
+    if (data.subjectId !== undefined) payload.subjectId = data.subjectId || null;
+    return apiRequest(`/teacher/groups/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
+}
+
+export function deleteStudentGroup(id: string) {
+    if (!validateGuid(id)) throw new Error('معرف المجموعة غير صالح');
+    return apiRequest(`/teacher/groups/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+    });
+}
+
+export function addGroupMembers(id: string, studentIds: string[]) {
+    if (!validateGuid(id)) throw new Error('معرف المجموعة غير صالح');
+    return apiRequest(`/teacher/groups/${encodeURIComponent(id)}/members`, {
+        method: "POST",
+        body: JSON.stringify({ studentIds }),
+    });
+}
+
+export function removeGroupMember(id: string, studentId: string) {
+    if (!validateGuid(id)) throw new Error('معرف المجموعة غير صالح');
+    if (!validateGuid(studentId)) throw new Error('معرف الطالب غير صالح');
+    return apiRequest(`/teacher/groups/${encodeURIComponent(id)}/members/${encodeURIComponent(studentId)}`, {
+        method: "DELETE",
+    });
+}
+
+export function getAvailableStudents(search?: string): Promise<{ data: StudentGroupMember[] }> {
+    let qs = "";
+    if (search && search.trim()) {
+        const sanitizedSearch = sanitizeSearchQuery(search);
+        if (sanitizedSearch) qs = `?search=${encodeURIComponent(sanitizedSearch)}`;
+    }
+    return apiRequest(`/teacher/groups/available-students${qs}`);
+}
+
+export const fetchStudentGroups = async (): Promise<StudentGroup[]> => {
+    try {
+        const json = await getStudentGroups();
+        return json.data ?? [];
+    } catch {
+        return [];
+    }
+};

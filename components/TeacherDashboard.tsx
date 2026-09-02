@@ -18,6 +18,7 @@ import AccountingTab from './AccountingTab';
 import TeacherAttendanceTab from './TeacherAttendanceTab';
 import ExamViewer from './teacher/ExamViewer';
 import QuestionBank from './teacher/QuestionBank';
+import StudentGroupsTab from './teacher/StudentGroupsTab';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import StreakBadge from './StreakBadge';
@@ -584,6 +585,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                         </>
                     )}
                     {activeNav === 'students' && <TeacherStudents />}
+                    {activeNav === 'groups' && <StudentGroupsTab />}
                     {activeNav === 'analytics' && (
                         <TeacherAnalytics subjects={subjects} totalSubjects={totalSubjects} totalStudents={totalStudents} totalLectures={totalLectures} publishedCount={publishedCount} activities={apiActivities} />
                     )}

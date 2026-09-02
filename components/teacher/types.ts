@@ -50,7 +50,7 @@ export interface Subject {
     createdAt: string;
 }
 
-export type TeacherNavItem = 'dashboard' | 'subjects' | 'students' | 'analytics' | 'profile' | 'accounting' | 'exams' | 'bank' | 'attendance';
+export type TeacherNavItem = 'dashboard' | 'subjects' | 'students' | 'groups' | 'analytics' | 'profile' | 'accounting' | 'exams' | 'bank' | 'attendance';
 
 // Category to Icon mapping
 export const categoryIcons: Record<string, string> = {

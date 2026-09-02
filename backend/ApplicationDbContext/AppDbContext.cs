@@ -89,6 +89,11 @@ namespace elmanassa.ApplicationDbContext
         public DbSet<AttendanceLog> AttendanceLogs { get; set; }
         #endregion
 
+        #region Student Groups
+        public DbSet<StudentGroup> StudentGroups { get; set; }
+        public DbSet<StudentGroupMember> StudentGroupMembers { get; set; }
+        #endregion
+
         #region Employees
         public DbSet<Employee> Employees { get; set; }
         #endregion
@@ -436,6 +441,39 @@ namespace elmanassa.ApplicationDbContext
             modelBuilder.Entity<Employee>().HasIndex(e => e.Position);
             modelBuilder.Entity<Employee>().HasIndex(e => e.Status);
             modelBuilder.Entity<Employee>().HasIndex(e => e.HireDate);
+
+            // ===== Student Groups Configuration =====
+            modelBuilder.Entity<StudentGroup>(entity =>
+            {
+                entity.HasKey(g => g.Id);
+                entity.Property(g => g.Id).ValueGeneratedNever();
+                entity.HasOne(g => g.Teacher)
+                    .WithMany()
+                    .HasForeignKey(g => g.TeacherId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(g => g.Subject)
+                    .WithMany()
+                    .HasForeignKey(g => g.SubjectId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasIndex(g => g.TeacherId);
+                entity.HasIndex(g => g.SubjectId);
+            });
+
+            modelBuilder.Entity<StudentGroupMember>(entity =>
+            {
+                entity.HasKey(m => m.Id);
+                entity.HasOne(m => m.StudentGroup)
+                    .WithMany(g => g.Members)
+                    .HasForeignKey(m => m.StudentGroupId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(m => m.Student)
+                    .WithMany()
+                    .HasForeignKey(m => m.StudentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(m => m.StudentGroupId);
+                entity.HasIndex(m => m.StudentId);
+                entity.HasIndex(m => new { m.StudentGroupId, m.StudentId }).IsUnique();
+            });
         }
     }
 }
