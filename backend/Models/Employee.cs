@@ -38,6 +38,13 @@ namespace elmanassa.Models
         [MaxLength(500)]
         public string? Notes { get; set; }
 
+        /// <summary>Whether the current month's salary has been paid</summary>
+        public bool SalaryPaid { get; set; } = false;
+
+        /// <summary>yyyy-MM-dd of last salary payment</summary>
+        [MaxLength(10)]
+        public string? LastPaidDate { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }

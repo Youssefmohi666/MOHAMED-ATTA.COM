@@ -42,6 +42,22 @@ namespace elmanassa.Services
                     var digits = new string(model.PhoneNumber.Where(char.IsDigit).ToArray());
                     if (digits.Length < 7 || digits.Length > 15)
                         return new AuthResponseDTO { Success = false, Message = "رقم الهاتف يجب أن يكون بين 7 و 15 رقماً" };
+
+                    // Phone must be unique per user (DB has a unique constraint).
+                    if (await _context.Users.AsNoTracking()
+                            .AnyAsync(u => u.PhoneNumber == digits))
+                        return new AuthResponseDTO { Success = false, Message = "رقم الهاتف مسجل بالفعل" };
+                }
+
+                var birthDate = model.BirthDate;
+                if (model.Role.ToLower() == "student" && birthDate.HasValue)
+                {
+                    if ((DateTime.UtcNow - birthDate.Value).TotalDays < 365)
+                        return new AuthResponseDTO { Success = false, Message = "تاريخ الميلاد غير صالح" };
+
+                    // Normalize to UTC so PostgreSQL (timestamptz) accepts it.
+                    if (birthDate.Value.Kind == DateTimeKind.Unspecified)
+                        birthDate = DateTime.SpecifyKind(birthDate.Value, DateTimeKind.Utc);
                 }
 
                 var user = new User
@@ -52,6 +68,10 @@ namespace elmanassa.Services
                     Role = model.Role.ToLower(),
                     AvatarUrl = model.AvatarUrl,
                     PhoneNumber = model.PhoneNumber,
+                    GuardianPhone = model.GuardianPhone,
+                    FatherName = model.FatherName,
+                    MotherPhone = model.MotherPhone,
+                    PrimaryEmail = model.PrimaryEmail,
                     NationalId = model.NationalId,
                     Bio = model.Bio,
                     IsActive = true,
@@ -68,7 +88,7 @@ namespace elmanassa.Services
                     {
                         UserId = user.Id,
                         User = user,
-                        DateOfBirth = DateTime.MinValue,
+                        DateOfBirth = birthDate ?? DateTime.MinValue,
                         EducationLevel = "Not Specified"
                     });
                 }
@@ -144,10 +164,39 @@ namespace elmanassa.Services
         {
             try
             {
-                var user = _context.Users.FirstOrDefault(u => u.Email == model.Email);
+                var identifier = (model.Email ?? "").Trim().ToLower();
+                var idDigits = new string(identifier.Where(char.IsDigit).ToArray());
+                var isPhoneInput = idDigits.Length >= 7;
 
-                if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
-                    return new AuthResponseDTO { Success = false, Message = "البريد الإلكتروني أو كلمة المرور غير صحيحة" };
+                User? user;
+                if (isPhoneInput)
+                {
+                    user = await _context.Users.AsNoTracking()
+                        .FirstOrDefaultAsync(u => u.PhoneNumber == idDigits);
+                }
+                else
+                {
+                    user = await _context.Users.AsNoTracking()
+                        .FirstOrDefaultAsync(u => u.Email.ToLower() == identifier);
+                }
+                if (user == null)
+                {
+                    // Fallback: try the other identifier (e.g. email typed in phone field)
+                    user = await _context.Users.AsNoTracking()
+                        .FirstOrDefaultAsync(u => u.Email.ToLower() == identifier || u.PhoneNumber == identifier);
+                }
+
+                if (user == null)
+                    return new AuthResponseDTO { Success = false, Message = "البريد الإلكتروني أو رقم الهاتف أو كلمة المرور غير صحيحة" };
+
+                var passwordOk = !string.IsNullOrEmpty(model.Password) &&
+                                 BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
+                var codeOk = !string.IsNullOrEmpty(model.Code) &&
+                             !string.IsNullOrEmpty(user.CenterCode) &&
+                             string.Equals(model.Code.Trim(), user.CenterCode.Trim(), StringComparison.OrdinalIgnoreCase);
+
+                if (!passwordOk && !codeOk)
+                    return new AuthResponseDTO { Success = false, Message = "البريد الإلكتروني أو رقم الهاتف أو كلمة المرور غير صحيحة" };
 
                 if (!user.IsActive)
                     return new AuthResponseDTO { Success = false, Message = "الحساب غير مفعّل" };

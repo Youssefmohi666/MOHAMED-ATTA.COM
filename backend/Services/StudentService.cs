@@ -10,7 +10,10 @@ namespace elmanassa.Services
         Task<List<EnrollmentDTO>> GetEnrollmentsAsync(Guid userId);
         Task<StudentProgressDTO> GetProgressAsync(Guid userId);
         Task<bool> UpdateProgressAsync(Guid userId, LectureProgressUpdateDTO dto);
+        Task<List<VideoViewDTO>> GetVideoViewsAsync(Guid userId);
         Task<FreeEnrollResult> EnrollFreeAsync(Guid userId, FreeEnrollDTO dto);
+        Task<UserDTO?> GetProfileAsync(Guid userId);
+        Task<UserDTO?> UpdateProfileAsync(Guid userId, UserUpdateDTO dto);
     }
 
     public class StudentService : IStudentService
@@ -109,6 +112,26 @@ namespace elmanassa.Services
             return true;
         }
 
+        public async Task<List<VideoViewDTO>> GetVideoViewsAsync(Guid userId)
+        {
+            var views = await _context.LectureProgress
+                .Where(lp => lp.UserId == userId)
+                .Select(lp => new VideoViewDTO
+                {
+                    LectureId = lp.LectureId,
+                    LectureTitle = lp.Lecture.Title,
+                    SubjectName = lp.Lecture.Level.Subject.Name,
+                    ProgressPct = lp.ProgressPct,
+                    Duration = lp.Lecture.Duration,
+                    Completed = lp.Completed,
+                    LastWatchedAt = lp.LastWatchedAt
+                })
+                .OrderByDescending(v => v.LastWatchedAt)
+                .ToListAsync();
+
+            return views;
+        }
+
         public async Task<FreeEnrollResult> EnrollFreeAsync(Guid userId, FreeEnrollDTO dto)
         {
             if (!Guid.TryParse(dto.SubjectId, out var subjectId))
@@ -138,5 +161,48 @@ namespace elmanassa.Services
 
             return new FreeEnrollResult { Code = "ENROLLED", Message = "تم التسجيل في المادة بنجاح" };
         }
+
+        public async Task<UserDTO?> GetProfileAsync(Guid userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return null;
+            return ToUserDTO(user);
+        }
+
+        public async Task<UserDTO?> UpdateProfileAsync(Guid userId, UserUpdateDTO dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return null;
+
+            if (!string.IsNullOrWhiteSpace(dto.Name)) user.Name = dto.Name!.Trim();
+            if (!string.IsNullOrWhiteSpace(dto.PhoneNumber)) user.PhoneNumber = new string(dto.PhoneNumber.Where(char.IsDigit).ToArray());
+            if (dto.GuardianPhone != null) user.GuardianPhone = string.IsNullOrWhiteSpace(dto.GuardianPhone) ? null : new string(dto.GuardianPhone.Where(char.IsDigit).ToArray());
+            if (dto.FatherName != null) user.FatherName = string.IsNullOrWhiteSpace(dto.FatherName) ? null : dto.FatherName.Trim();
+            if (dto.MotherPhone != null) user.MotherPhone = string.IsNullOrWhiteSpace(dto.MotherPhone) ? null : new string(dto.MotherPhone.Where(char.IsDigit).ToArray());
+            if (dto.PrimaryEmail != null) user.PrimaryEmail = string.IsNullOrWhiteSpace(dto.PrimaryEmail) ? null : dto.PrimaryEmail.Trim();
+            if (dto.Bio != null) user.Bio = dto.Bio;
+
+            user.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return ToUserDTO(user);
+        }
+
+        private static UserDTO ToUserDTO(User user) => new UserDTO
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            GuardianPhone = user.GuardianPhone,
+            FatherName = user.FatherName,
+            MotherPhone = user.MotherPhone,
+            PrimaryEmail = user.PrimaryEmail,
+            NationalId = user.NationalId,
+            AvatarUrl = user.AvatarUrl,
+            Bio = user.Bio,
+            Role = user.Role,
+            IsActive = user.IsActive,
+            CreatedAt = user.CreatedAt,
+        };
     }
 }

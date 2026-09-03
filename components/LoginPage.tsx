@@ -12,6 +12,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [centerMode, setCenterMode] = useState(false);
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -35,27 +36,22 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     e.preventDefault();
 
     // Validate required fields
-    if (!email.trim() || !password) {
-      setError('يرجى ملء جميع الحقول');
+    if (!email.trim() || (!centerMode && !password) || (centerMode && !code.trim())) {
+      setError(centerMode ? 'يرجى إدخال البريد/الهاتف و كود السنتر' : 'يرجى ملء جميع الحقول');
       return;
     }
 
-    // Sanitize email
-    const sanitizedEmail = sanitizePlainText(email, 254).toLowerCase();
-
-    // Validate email format
-    if (!validateEmail(sanitizedEmail)) {
-      setError('البريد الإلكتروني غير صالح');
-      return;
-    }
-
+    const clean = email.trim();
+    const isPhone = /^[+\d][\d\s-]{6,}$/.test(clean) && /^\d/.test(clean.replace(/[^0-9]/g, ''));
     setError('');
     setIsLoading(true);
     try {
-      const result = await login(sanitizedEmail, password);
+      // login() sends "email" for the email-or-phone identifier
+      const sanitized = isPhone ? clean.replace(/[^0-9]/g, '') : clean.toLowerCase();
+      const result = await login(sanitized, password, centerMode ? code.trim() : undefined);
       if (result && result.requiresEmailVerification) {
         showToast('يرجى تفعيل بريدك الإلكتروني أولاً. تم إرسال رمز التحقق إلى بريدك.', 'warning');
-        onNavigate('verify-email', { email: result.email || sanitizedEmail });
+        onNavigate('verify-email', { email: result.email || sanitized });
         return;
       }
     } catch (err: unknown) {
@@ -112,10 +108,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
           )}
 
           <form className="space-y-5" onSubmit={handleSubmit} noValidate>
-            {/* Email Field */}
+            {/* Email / Phone Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-[#002c61] mb-1.5">
-                البريد الإلكتروني
+                البريد الإلكتروني أو رقم الهاتف
               </label>
               <div className="relative">
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737782]" aria-hidden="true">
@@ -124,13 +120,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   </svg>
                 </span>
                 <input
-                  type="email"
+                  type="text"
                   id="email"
                   name="email"
-                  autoComplete="email"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
+                  placeholder="example@email.com أو 01XXXXXXXXX"
                   aria-required="true"
                   aria-invalid={!!error}
                   className={`w-full pr-10 pl-4 py-3 bg-[#e8e7ee] rounded-t-xl rounded-b-none border-b-2 text-[#1a1c20] placeholder:text-[#737782] focus:outline-none focus:bg-[#ededf4] transition-colors duration-200 ${
@@ -148,7 +144,38 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               )}
             </div>
 
+            {/* Center Code Field (only in center mode) */}
+            {centerMode && (
+              <div>
+                <label htmlFor="code" className="block text-sm font-semibold text-[#002c61] mb-1.5">
+                  كود السنتر
+                </label>
+                <div className="relative">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737782]" aria-hidden="true">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    id="code"
+                    name="code"
+                    autoComplete="one-time-code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="أدخل كود السنتر الخاص بك"
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    className={`w-full pr-10 pl-4 py-3 bg-[#e8e7ee] rounded-t-xl rounded-b-none border-b-2 text-[#1a1c20] placeholder:text-[#737782] focus:outline-none focus:bg-[#ededf4] transition-colors duration-200 ${
+                      error ? 'border-red-400 focus:border-red-500' : 'border-[#034289] focus:border-[#002c61]'
+                    }`}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Password Field */}
+            {!centerMode && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="password" className="block text-sm font-semibold text-[#002c61]">
@@ -181,6 +208,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                 />
               </div>
             </div>
+            )}
 
             {/* Remember Me */}
             <div className="flex items-center gap-2.5">

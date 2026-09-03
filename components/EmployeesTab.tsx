@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     Employee, EmployeeStats,
-    getEmployees, getEmployeeStats, createEmployee, updateEmployee, deleteEmployee,
+    getEmployees, getEmployeeStats, createEmployee, updateEmployee, deleteEmployee, markEmployeePaid,
 } from '../api/attendance.api';
 
 interface EmployeesTabProps {
@@ -43,6 +43,9 @@ export default function EmployeesTab({ showToast }: EmployeesTabProps) {
     const [editId, setEditId] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [confirmId, setConfirmId] = useState<string | null>(null);
+    const [paidModal, setPaidModal] = useState<Employee | null>(null);
+    const [paidForm, setPaidForm] = useState<{ amount: number; paidDate: string }>({ amount: 0, paidDate: '' });
+    const [paying, setPaying] = useState(false);
 
     const load = useCallback(async (searchTerm = '', status = '') => {
         setLoading(true);
@@ -73,6 +76,30 @@ export default function EmployeesTab({ showToast }: EmployeesTabProps) {
         setForm({ ...e, hireDate: e.hireDate?.slice(0, 10) || '' });
         setEditId(e.id);
         setModal('edit');
+    };
+
+    const openMarkPaid = (e: Employee) => {
+        setPaidForm({ amount: Number(e.salary) || 0, paidDate: new Date().toISOString().slice(0, 10) });
+        setPaidModal(e);
+    };
+
+    const handleMarkPaid = async () => {
+        if (!paidModal) return;
+        if (!paidForm.paidDate) {
+            showToast('اختر تاريخ الدفع', false);
+            return;
+        }
+        setPaying(true);
+        try {
+            await markEmployeePaid(paidModal.id, { amount: Number(paidForm.amount) || 0, paidDate: paidForm.paidDate });
+            showToast(`تم صرف راتب ${paidModal.name} بنجاح`);
+            setPaidModal(null);
+            load(search, statusFilter);
+            getEmployeeStats().then(r => setStats(r?.data || null)).catch(() => {});
+        } catch (e: any) {
+            showToast(e?.message || 'تعذر صرف الراتب', false);
+        }
+        setPaying(false);
     };
 
     const handleSave = async () => {
@@ -188,7 +215,7 @@ export default function EmployeesTab({ showToast }: EmployeesTabProps) {
                     <table className="w-full border-collapse text-sm">
                         <thead>
                             <tr className="border-b border-slate-100 bg-slate-50/60">
-                                {['الاسم', 'الوظيفة', 'القسم', 'الهاتف', 'الراتب الشهري', 'تاريخ التعيين', 'الحالة', 'إجراءات'].map(h => (
+                                {['الاسم', 'الوظيفة', 'القسم', 'الراتب الشهري', 'المدفوع', 'آخر دفعة', 'الحالة', 'إجراءات'].map(h => (
                                     <th key={h} className="font-cairo px-4 py-3 text-left text-[11px] text-slate-500 font-semibold uppercase tracking-wider whitespace-nowrap">{h}</th>
                                 ))}
                             </tr>
@@ -215,9 +242,13 @@ export default function EmployeesTab({ showToast }: EmployeesTabProps) {
                                         <td className="px-4 py-3 text-[#0f2233] align-middle font-medium">{e.name}</td>
                                         <td className="px-4 py-3 text-slate-600 align-middle">{e.position}</td>
                                         <td className="px-4 py-3 text-slate-500 align-middle">{e.department || '—'}</td>
-                                        <td className="px-4 py-3 align-middle"><span style={{ direction: 'ltr' }} className="inline-block text-slate-500 text-[13px]">{e.phoneNumber || '—'}</span></td>
                                         <td className="px-4 py-3 align-middle text-[#0f2233] font-semibold">{Number(e.salary).toLocaleString('ar-SA')} ج.م</td>
-                                        <td className="px-4 py-3 text-slate-500 align-middle text-[13px]">{e.hireDate}</td>
+                                        <td className="px-4 py-3 align-middle">
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[12px] font-semibold border" style={{ background: '#10b98114', color: '#0d9488', borderColor: '#10b98130' }}>
+                                                {Number(e.salaryPaid || 0).toLocaleString('ar-SA')} ج.م
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 text-slate-500 align-middle text-[13px]">{e.lastPaidDate || '—'}</td>
                                         <td className="px-4 py-3 align-middle">
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[12px] font-semibold border" style={{ background: meta.bg, color: meta.color, borderColor: `${meta.color}25` }}>
                                                 {meta.label}
@@ -225,6 +256,7 @@ export default function EmployeesTab({ showToast }: EmployeesTabProps) {
                                         </td>
                                         <td className="px-4 py-3 align-middle">
                                             <div className="flex gap-1.5">
+                                                <button onClick={() => openMarkPaid(e)} className="font-cairo cursor-pointer px-2.5 py-1 text-xs rounded-lg font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all duration-150">صرف راتب</button>
                                                 <button onClick={() => openEdit(e)} className="font-cairo cursor-pointer px-2.5 py-1 text-xs rounded-lg font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 transition-all duration-150">تعديل</button>
                                                 <button onClick={() => setConfirmId(e.id)} className="font-cairo cursor-pointer px-2.5 py-1 text-xs rounded-lg font-semibold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all duration-150">حذف</button>
                                             </div>
@@ -294,6 +326,38 @@ export default function EmployeesTab({ showToast }: EmployeesTabProps) {
                             <button onClick={() => setModal(null)} className="font-cairo cursor-pointer px-3.5 py-2 text-[13px] rounded-lg font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 transition-all duration-150">إلغاء</button>
                             <button onClick={handleSave} disabled={saving} className="font-cairo cursor-pointer px-3.5 py-2 text-[13px] rounded-lg font-semibold text-white transition-all duration-150 border border-blue-600 bg-blue-600 hover:bg-blue-700 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
                                 {saving ? 'جاري الحفظ...' : 'حفظ'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mark Paid Modal */}
+            {paidModal && (
+                <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setPaidModal(null)} />
+                    <div className="relative z-10 bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <div className="flex items-start gap-3 mb-6">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                            </div>
+                            <div>
+                                <h3 className="font-cairo text-[#0f2233] font-semibold mb-1 m-0">صرف راتب</h3>
+                                <p className="font-cairo text-slate-500 text-sm m-0">{paidModal.name} — {paidModal.position}</p>
+                            </div>
+                        </div>
+                        <div className="mb-4">
+                            <label className="font-cairo block text-[12px] text-slate-500 mb-1.5 font-medium">المبلغ (ج.م)</label>
+                            <input className={inputCls} type="number" min="0" step="0.01" value={paidForm.amount} onChange={e => setPaidForm({ ...paidForm, amount: parseFloat(e.target.value) || 0 })} />
+                        </div>
+                        <div className="mb-4">
+                            <label className="font-cairo block text-[12px] text-slate-500 mb-1.5 font-medium">تاريخ الدفع</label>
+                            <input className={inputCls} type="date" value={paidForm.paidDate} onChange={e => setPaidForm({ ...paidForm, paidDate: e.target.value })} />
+                        </div>
+                        <div className="flex gap-2.5 justify-end mt-6 pt-4 border-t border-slate-100">
+                            <button onClick={() => setPaidModal(null)} className="font-cairo cursor-pointer px-3.5 py-2 text-[13px] rounded-lg font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 transition-all duration-150">إلغاء</button>
+                            <button onClick={handleMarkPaid} disabled={paying} className="font-cairo cursor-pointer px-3.5 py-2 text-[13px] rounded-lg font-semibold text-white transition-all duration-150 border border-emerald-600 bg-emerald-600 hover:bg-emerald-700 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+                                {paying ? 'جاري الصرف...' : 'تأكيد الصرف'}
                             </button>
                         </div>
                     </div>

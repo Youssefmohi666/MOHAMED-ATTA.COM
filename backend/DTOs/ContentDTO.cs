@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace elmanassa.DTOs
 {
+    public class CommentCreateDTO
+    {
+        [Required]
+        [MaxLength(1000)]
+        public string Content { get; set; }
+    }
+
     public class LiveStreamCreateDTO
     {
         public string Title { get; set; }

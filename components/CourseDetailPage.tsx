@@ -231,6 +231,27 @@ const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ courseId, onNavigat
 
             {/* ── Main Content + Sidebar ── */}
             <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
+
+                {/* Stat cards strip */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                    {[
+                        { label: 'محاضرات', value: totalLectures, icon: <PlayIcon className="w-4 h-4 text-[#DC2626]" />, note: 'درس فيديو' },
+                        { label: 'طلاب مسجلون', value: (course.students ?? 0).toLocaleString('ar-SA'), icon: <UsersIcon className="w-4 h-4 text-[#1E3A8A]" />, note: 'طالب' },
+                        { label: 'التقييم', value: `${course.rating ?? 0} / 5`, icon: <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />, note: `${((course.students ?? 0) / 10).toFixed(0)} تقييم` },
+                        { label: 'مدة الدورة', value: course.duration ? `${course.duration} س` : '—', icon: <ClockIcon className="w-4 h-4 text-[#059669]" />, note: 'ساعة إجمالية' },
+                    ].map((s, i) => (
+                        <div key={i} className="gloss-card p-4 flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-2xl bg-[#f3f3f6] flex items-center justify-center shrink-0">
+                                {s.icon}
+                            </div>
+                            <div className="min-w-0">
+                                <div className="text-lg font-black text-[#1a1c1e] leading-tight truncate">{s.value}</div>
+                                <div className="text-[11px] text-[#737782] font-semibold">{s.label} · {s.note}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
                     {/* ── Left: Main Content ── */}

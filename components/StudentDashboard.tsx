@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Page } from '../App';
-import { getProgress } from '../api/student.api';
+import { getProgress, getProfile, updateProfile, StudentProfile, getVideoViews, VideoView } from '../api/student.api';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import StudentExamViewer from './StudentExamViewer';
@@ -281,6 +281,98 @@ const StudentDashboard: React.FC<Props> = ({ onNavigate, initialTab, refreshKey 
   const notifRef = useRef<HTMLDivElement>(null);
   const userId = user?.id || 'guest';
   const unreadCount = notifs.filter(n => !n.read).length;
+
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [profileForm, setProfileForm] = useState<{ name: string; phone: string; guardianPhone: string; motherPhone: string; primaryEmail: string }>({
+    name: '', phone: '', guardianPhone: '', motherPhone: '', primaryEmail: '',
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== 'profile') return;
+    let cancelled = false;
+    getProfile().then((json: any) => {
+      const p = json?.data as StudentProfile | undefined;
+      if (!cancelled && p) {
+        setProfile(p);
+        setProfileForm({
+          name: p.name || '',
+          phone: p.phoneNumber || '',
+          guardianPhone: p.guardianPhone || '',
+          motherPhone: p.motherPhone || '',
+          primaryEmail: p.primaryEmail || '',
+        });
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [activeTab, userId]);
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const json: any = await updateProfile({
+        name: profileForm.name,
+        phoneNumber: profileForm.phone,
+        guardianPhone: profileForm.guardianPhone,
+        motherPhone: profileForm.motherPhone,
+        primaryEmail: profileForm.primaryEmail,
+      });
+      const p = json?.data as StudentProfile | undefined;
+      if (p) setProfile(p);
+      showToast('تم حفظ التغييرات بنجاح', 'success');
+    } catch (e: any) {
+      const msg = e?.status === 401 ? 'انتهت صلاحية الجلسة' : (e?.message || 'حدث خطأ أثناء الحفظ');
+      showToast(msg, 'error');
+    }
+    setSavingProfile(false);
+  };
+
+  const [profilePanel, setProfilePanel] = useState<string | null>(null);
+  const [videoViews, setVideoViews] = useState<VideoView[]>([]);
+  const [videoViewsLoading, setVideoViewsLoading] = useState(false);
+
+  const openVideoViews = async () => {
+    setProfilePanel('videoViews');
+    setVideoViewsLoading(true);
+    try {
+      setVideoViews(await getVideoViews());
+    } catch {
+      showToast('فشل تحميل سجل مشاهدة الفيديو', 'error');
+      setVideoViews([]);
+    }
+    setVideoViewsLoading(false);
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'profile' || profilePanel === 'videoViews') return;
+    if (profilePanel && profilePanel !== 'videoViews') setProfilePanel(null);
+  }, [activeTab, profilePanel]);
+
+  const fmtDurationAr = (secs: number) => {
+    if (!isFinite(secs) || secs <= 0) return '——';
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return m > 0 ? `${m} دقيقة و ${s} ثانية` : `${s} ثانية`;
+  };
+
+  const parseDuration = (d: string) => {
+    const m = /^(\d+):(\d+)$/.exec(d || '');
+    if (!m) return 0;
+    return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  };
+
+  // NaN-guarded watched-percentage: prefer the (integer, non-NaN) ProgressPct.
+  const watchedPctOf = (v: VideoView) => {
+    const pct = Number(v.progressPct);
+    return isFinite(pct) && pct >= 0 ? Math.min(100, Math.round(pct)) : 0;
+  };
+
+  const fmtLastWatched = (iso: string) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -651,23 +743,79 @@ const StudentDashboard: React.FC<Props> = ({ onNavigate, initialTab, refreshKey 
                 </div>
               </div>
               <div className="flex flex-col gap-5">
-                {[
-                  { label: 'الاسم الكامل', value: studentName, type: 'text', id: 'profile-name' },
-                  { label: 'البريد الإلكتروني', value: user?.email || '', type: 'email', id: 'profile-email' },
-                ].map((f) => (
-                  <div key={f.id}>
-                    <label htmlFor={f.id} className="block text-xs font-bold text-slate-500 mb-1.5">{f.label}</label>
+                <div>
+                  <label htmlFor="profile-name" className="block text-xs font-bold text-slate-500 mb-1.5">الاسم الكامل</label>
+                  <input
+                    id="profile-name"
+                    value={profileForm.name}
+                    onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))}
+                    type="text"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[#0f2233] text-sm outline-none focus:border-[#1E3A8A]/40 focus:ring-2 focus:ring-[#1E3A8A]/10 transition-all duration-200 font-cairo"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="profile-email" className="block text-xs font-bold text-slate-500 mb-1.5">البريد الإلكتروني (حساب المنصة)</label>
+                  <input
+                    id="profile-email"
+                    value={user?.email || ''}
+                    readOnly
+                    type="email"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-400 text-sm outline-none font-cairo"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="profile-primary-email" className="block text-xs font-bold text-slate-500 mb-1.5">الإيميل الأساسي (بعيداً عن إيميل المنصة)</label>
+                  <input
+                    id="profile-primary-email"
+                    value={profileForm.primaryEmail}
+                    onChange={e => setProfileForm(f => ({ ...f, primaryEmail: e.target.value }))}
+                    type="email"
+                    placeholder="example@gmail.com"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[#0f2233] text-sm outline-none focus:border-[#1E3A8A]/40 focus:ring-2 focus:ring-[#1E3A8A]/10 transition-all duration-200 font-cairo"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label htmlFor="profile-phone" className="block text-xs font-bold text-slate-500 mb-1.5">رقم الهاتف</label>
                     <input
-                      id={f.id}
-                      defaultValue={f.value}
-                      type={f.type}
+                      id="profile-phone"
+                      value={profileForm.phone}
+                      onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))}
+                      type="tel"
+                      placeholder="01xxxxxxxxx"
                       className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[#0f2233] text-sm outline-none focus:border-[#1E3A8A]/40 focus:ring-2 focus:ring-[#1E3A8A]/10 transition-all duration-200 font-cairo"
                     />
                   </div>
-                ))}
+                  <div>
+                    <label htmlFor="profile-guardian" className="block text-xs font-bold text-slate-500 mb-1.5">رقم هاتف ولي الأمر</label>
+                    <input
+                      id="profile-guardian"
+                      value={profileForm.guardianPhone}
+                      onChange={e => setProfileForm(f => ({ ...f, guardianPhone: e.target.value }))}
+                      type="tel"
+                      placeholder="01xxxxxxxxx"
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[#0f2233] text-sm outline-none focus:border-[#1E3A8A]/40 focus:ring-2 focus:ring-[#1E3A8A]/10 transition-all duration-200 font-cairo"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="profile-mother" className="block text-xs font-bold text-slate-500 mb-1.5">رقم هاتف الأم</label>
+                    <input
+                      id="profile-mother"
+                      value={profileForm.motherPhone}
+                      onChange={e => setProfileForm(f => ({ ...f, motherPhone: e.target.value }))}
+                      type="tel"
+                      placeholder="01xxxxxxxxx"
+                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-[#0f2233] text-sm outline-none focus:border-[#1E3A8A]/40 focus:ring-2 focus:ring-[#1E3A8A]/10 transition-all duration-200 font-cairo"
+                    />
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-3 pt-1">
-                  <button className="bg-gradient-to-l from-[#1E3A8A] to-[#0566d9] border-none rounded-2xl px-7 py-3 text-white text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity duration-200 shadow-lg shadow-[#1E3A8A]/25 font-cairo">
-                    حفظ التغييرات
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={savingProfile}
+                    className="bg-gradient-to-l from-[#1E3A8A] to-[#0566d9] border-none rounded-2xl px-7 py-3 text-white text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity duration-200 shadow-lg shadow-[#1E3A8A]/25 font-cairo disabled:opacity-50"
+                  >
+                    {savingProfile ? 'جاري الحفظ…' : 'حفظ التغييرات'}
                   </button>
                   <button
                     onClick={() => { logout(); onNavigate('home'); }}
@@ -676,6 +824,64 @@ const StudentDashboard: React.FC<Props> = ({ onNavigate, initialTab, refreshKey 
                     <IconLogout size={15} /> تسجيل الخروج
                   </button>
                 </div>
+
+                <div className="border-t border-slate-100 pt-5 mt-1">
+                  <p className="text-xs font-extrabold text-slate-400 mb-3">اختيارات أخرى</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    <button onClick={() => setProfilePanel('videoViews')}
+                      className="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-right text-sm font-bold text-[#0f2233] cursor-pointer transition-colors">
+                      <IconPlay size={15} className="text-[#1E3A8A]" /> مشاهدات الفيديو
+                    </button>
+                    <button onClick={() => setActiveTab('exams')}
+                      className="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-right text-sm font-bold text-[#0f2233] cursor-pointer transition-colors">
+                      <IconExam size={15} className="text-[#1E3A8A]" /> نتائج الامتحانات
+                    </button>
+                    <button
+                      className="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-right text-sm font-bold text-[#0f2233] cursor-pointer transition-colors">
+                      <IconBookOpen size={15} className="text-[#1E3A8A]" /> نتائج الواجب
+                    </button>
+                    <button
+                      className="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-right text-sm font-bold text-[#0f2233] cursor-pointer transition-colors">
+                      <IconUser size={15} className="text-[#1E3A8A]" /> الأمان وتاريخ تسجيل الدخول
+                    </button>
+                    <button
+                      className="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-right text-sm font-bold text-[#0f2233] cursor-pointer transition-colors">
+                      <IconCalendar size={15} className="text-[#1E3A8A]" /> رابط المركز
+                    </button>
+                  </div>
+                </div>
+
+                {profilePanel === 'videoViews' && (
+                  <div className="border border-slate-200 rounded-2xl bg-white overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                      <p className="text-sm font-extrabold text-[#0f2233]">مشاهدات الفيديو</p>
+                      <button onClick={() => setProfilePanel(null)} className="text-xs font-bold text-slate-400 hover:text-[#1E3A8A] cursor-pointer bg-transparent border-none">إغلاق</button>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {videoViewsLoading ? (
+                        <p className="px-4 py-6 text-sm text-slate-400 text-center font-cairo">جاري التحميل…</p>
+                      ) : videoViews.length === 0 ? (
+                        <p className="px-4 py-6 text-sm text-slate-400 text-center font-cairo">لا توجد مشاهدات بعد</p>
+                      ) : (
+                        videoViews.map(v => {
+                          const pct = watchedPctOf(v);
+                          return (
+                            <div key={v.lectureId} className="px-4 py-3 border-b border-slate-50 last:border-b-0">
+                              <div className="flex items-center justify-between gap-2 mb-1.5">
+                                <p className="text-xs font-bold text-[#0f2233] truncate">{v.lectureTitle}</p>
+                                <span className={`text-xs font-extrabold shrink-0 ${pct >= 100 ? 'text-green-600' : pct > 0 ? 'text-[#1E3A8A]' : 'text-slate-400'}`}>{pct}%</span>
+                              </div>
+                              <p className="text-[11px] text-slate-400 mb-2">{v.subjectName} · {fmtLastWatched(v.lastWatchedAt)} · {fmtDurationAr(parseDuration(v.duration))}</p>
+                              <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                <div className="h-full rounded-full bg-gradient-to-l from-[#1E3A8A] to-[#0566d9] transition-all duration-300" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

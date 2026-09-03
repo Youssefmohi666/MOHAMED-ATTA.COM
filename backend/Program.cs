@@ -67,6 +67,7 @@ namespace elmanassa
             builder.Services.AddScoped<IContentService, ContentService>();
             builder.Services.AddScoped<ILiveStreamService, LiveStreamService>();
             builder.Services.AddScoped<IAiService, AiService>();
+            builder.Services.AddScoped<IStudyLibraryService, StudyLibraryService>();
             builder.Services.AddScoped<IContactService, ContactService>();
 
             // Presentation service

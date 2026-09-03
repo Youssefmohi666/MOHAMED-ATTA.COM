@@ -15,13 +15,13 @@ export interface User {
 interface AuthContextType {
     user: User | null;
     isLoggedIn: boolean;
-    login: (email: string, password: string) => Promise<{ requiresEmailVerification?: boolean; email?: string } | void>;
+    login: (email: string, password: string, code?: string) => Promise<{ requiresEmailVerification?: boolean; email?: string } | void>;
     loginWithTokens: (data: { token: string; refreshToken: string; userId: string; name: string; email: string; role: string }) => void;
     signup: (data: {
         name: string; email: string; password: string; role: AccountType;
-        phoneNumber: string; nationalId: string;
-        fatherName?: string; motherName?: string;
-        fatherPhoneNumber?: string; motherPhoneNumber?: string;
+        phoneNumber: string;
+        fatherName?: string;
+        guardianPhone?: string; motherPhone?: string; birthDate?: string;
     }) => Promise<void>;
     signupTeacher: (payload: {
         name: string; email: string; password: string; nationalId: string;
@@ -100,13 +100,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => window.removeEventListener('auth:expired', handleExpired);
     }, []);
 
-    const login = useCallback(async (email: string, password: string) => {
+    const login = useCallback(async (email: string, password: string, code?: string) => {
         let res: Response;
         try {
             res = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, code }),
             });
         } catch (fetchErr: any) {
             if (fetchErr instanceof TypeError && fetchErr.message?.includes('Failed to fetch')) {
@@ -119,16 +119,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!res.ok && data.requiresEmailVerification) {
             return { requiresEmailVerification: true, email: data.email || email };
         }
-        if (res.status === 401) throw new Error('رقم الهاتف أو كلمة المرور غير صحيحة. تأكد من صحة بياناتك');
+        if (res.status === 401) throw new Error('البريد الإلكتروني أو رقم الهاتف أو كلمة المرور غير صحيحة. تأكد من صحة بياناتك');
         if (!res.ok || !data.success) throw new Error(extractErrorMessage(data, 'فشل تسجيل الدخول'));
-        setUser(persistSession(data, email.split('@')[0], email, 'student'));
+        setUser(persistSession(data, data.name || email.split('@')[0] || email, data.email || email, 'student'));
     }, []);
 
     const signup = useCallback(async (data: {
         name: string; email: string; password: string; role: AccountType;
-        phoneNumber: string; nationalId: string;
-        fatherName?: string; motherName?: string;
-        fatherPhoneNumber?: string; motherPhoneNumber?: string;
+        phoneNumber: string;
+        fatherName?: string;
+        guardianPhone?: string; motherPhone?: string; birthDate?: string;
     }) => {
         let res: Response;
         try {

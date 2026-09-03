@@ -201,6 +201,10 @@ namespace elmanassa.Services
             if (subject == null)
                 return false;
 
+            var hasOrders = await _context.Orders.AnyAsync(o => o.SubjectId == subjectId);
+            if (hasOrders)
+                throw new BusinessRuleException("لا يمكن حذف المادة لوجود طلبات/حجوزات مرتبطة بها");
+
             _context.Subjects.Remove(subject);
             await _context.SaveChangesAsync();
 

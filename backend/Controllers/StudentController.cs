@@ -47,6 +47,48 @@ namespace elmanassa.Controllers
         }
 
         /// <summary>
+        /// Get the student's own profile (incl. phone numbers + primary email)
+        /// </summary>
+        [HttpGet("profile")]
+        public async Task<ActionResult<ApiResponse<UserDTO>>> GetProfile()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var profile = await _studentService.GetProfileAsync(userId);
+                if (profile == null)
+                    return NotFound(new ApiResponse<object>("المستخدم غير موجود", "NOT_FOUND", false));
+                return Ok(new ApiResponse<UserDTO>(profile));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching student profile");
+                return StatusCode(500, new ApiResponse<object>("حدث خطأ", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>
+        /// Update the student's own profile (name, phones, primary email, bio)
+        /// </summary>
+        [HttpPut("profile")]
+        public async Task<ActionResult<ApiResponse<UserDTO>>> UpdateProfile([FromBody] UserUpdateDTO model)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var profile = await _studentService.UpdateProfileAsync(userId, model);
+                if (profile == null)
+                    return NotFound(new ApiResponse<object>("المستخدم غير موجود", "NOT_FOUND", false));
+                return Ok(new ApiResponse<UserDTO>(profile));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating student profile");
+                return StatusCode(500, new ApiResponse<object>("حدث خطأ", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>
         /// Get student learning progress
         /// </summary>
         [HttpGet("progress")]
@@ -89,6 +131,26 @@ namespace elmanassa.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating progress");
+                return StatusCode(500, new ApiResponse<object>(
+                    "An error occurred", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>
+        /// Get student video-view history (per-lecture watched percentage)
+        /// </summary>
+        [HttpGet("video-views")]
+        public async Task<ActionResult<ApiResponse<List<VideoViewDTO>>>> GetVideoViews()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var views = await _studentService.GetVideoViewsAsync(userId);
+                return Ok(new ApiResponse<List<VideoViewDTO>>(views));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching video views");
                 return StatusCode(500, new ApiResponse<object>(
                     "An error occurred", "SERVER_ERROR", false));
             }

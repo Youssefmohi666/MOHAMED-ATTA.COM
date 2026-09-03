@@ -72,10 +72,14 @@ namespace elmanassa.ApplicationDbContext
         public DbSet<BankQuestion> BankQuestions { get; set; }
         #endregion
 
-        #region Legacy (Keep for intermediate migration)
+        #region Students
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<AiLearningActivity> AiLearningActivities { get; set; }
+        #endregion
+
+        #region Study Library
+        public DbSet<StudyResource> StudyResources { get; set; }
         #endregion
 
         #region Attendance
@@ -473,6 +477,35 @@ namespace elmanassa.ApplicationDbContext
                 entity.HasIndex(m => m.StudentGroupId);
                 entity.HasIndex(m => m.StudentId);
                 entity.HasIndex(m => new { m.StudentGroupId, m.StudentId }).IsUnique();
+            });
+
+            // ===== Study Library Configuration =====
+            modelBuilder.Entity<StudyResource>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+                entity.Property(r => r.Id).ValueGeneratedNever();
+                entity.Property(r => r.Title).HasMaxLength(500).IsRequired();
+                entity.Property(r => r.Grade).HasMaxLength(100);
+                entity.Property(r => r.Term).HasMaxLength(100);
+                entity.Property(r => r.FileName).HasMaxLength(500);
+                entity.Property(r => r.FilePath).HasMaxLength(1000);
+                entity.HasOne(r => r.Subject)
+                    .WithMany()
+                    .HasForeignKey(r => r.SubjectId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(r => r.Course)
+                    .WithMany()
+                    .HasForeignKey(r => r.CourseId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(r => r.Teacher)
+                    .WithMany()
+                    .HasForeignKey(r => r.TeacherId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasIndex(r => r.Grade);
+                entity.HasIndex(r => r.Term);
+                entity.HasIndex(r => r.SubjectId);
+                entity.HasIndex(r => r.CourseId);
+                entity.HasIndex(r => r.TeacherId);
             });
         }
     }

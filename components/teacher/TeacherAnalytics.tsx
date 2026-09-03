@@ -245,22 +245,69 @@ const TeacherAnalytics: React.FC<TeacherAnalyticsProps> = ({
                         </div>
                     )}
 
-                    {/* Most watched lectures */}
+                    {/* Most watched lectures — horizontal bar chart */}
                     <div className="bg-white border border-slate-200/80 rounded-2xl p-4">
-                        <h3 className="text-sm font-bold text-[#0f2233] mb-4 font-cairo">أكثر المحاضرات مشاهدة</h3>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-bold text-[#0f2233] font-cairo">أكثر المحاضرات مشاهدة</h3>
+                            <span className="text-[11px] text-slate-400 font-cairo">مشاهدات/محاضرة</span>
+                        </div>
                         {(!overview?.mostWatched || overview.mostWatched.length === 0) ? (
                             <p className="text-center text-slate-500 text-[13px] font-cairo">لا توجد بيانات مشاهدة بعد</p>
                         ) : (
-                            overview.mostWatched.map((lec: any, i: number) => (
-                                <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                                    <span className="text-[13px] text-slate-600 font-cairo flex-1 min-w-0 truncate pl-3">
-                                        <span className="text-slate-400 ml-2">{i + 1}.</span>{lec.title}
-                                    </span>
-                                    <span className="text-[12px] text-amber-600 font-bold font-cairo whitespace-nowrap">{lec.viewCount} مشاهدة</span>
-                                </div>
-                            ))
+                            (() => {
+                                const maxViews = Math.max(...overview.mostWatched.map((l: any) => Number(l.viewCount) || 0), 1);
+                                return (
+                                    <div className="space-y-3">
+                                        {overview.mostWatched.map((lec: any, i: number) => {
+                                            const v = Number(lec.viewCount) || 0;
+                                            const pct = Math.min(100, Math.round((v / maxViews) * 100));
+                                            const colors = ['#a855f7', '#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9'];
+                                            return (
+                                                <div key={i} className="flex items-center gap-3">
+                                                    <span className="w-5 shrink-0 text-center text-[12px] font-bold text-slate-400 font-cairo">{i + 1}</span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center justify-between mb-1 gap-2">
+                                                            <span className="text-[13px] text-slate-600 font-cairo truncate font-medium">{lec.title}</span>
+                                                            <span className="text-[12px] font-bold font-cairo" style={{ color: colors[i % colors.length] }}>{v} مشاهدة</span>
+                                                        </div>
+                                                        <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                                            <div className="h-full rounded-full transition-all duration-700"
+                                                                style={{ width: `${pct}%`, background: `linear-gradient(to left, ${colors[i % colors.length]}, ${colors[(i + 1) % colors.length]})` }} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()
                         )}
                     </div>
+
+                    {/* Weekly views trend (mini bar chart) */}
+                    {overview?.weeklyWatches && overview.weeklyWatches.length > 0 && (
+                        <div className="bg-white border border-slate-200/80 rounded-2xl p-4">
+                            <h3 className="text-sm font-bold text-[#0f2233] mb-4 font-cairo">المشاهدات خلال الأسابيع الأخيرة</h3>
+                            {(() => {
+                                const max = Math.max(...overview.weeklyWatches.map((w: any) => Number(w.count) || 0), 1);
+                                return (
+                                    <div className="flex items-end gap-2 h-32">
+                                        {overview.weeklyWatches.slice(-12).map((w: any, i: number) => {
+                                            const c = Number(w.count) || 0;
+                                            const h = Math.max(6, (c / max) * 100);
+                                            return (
+                                                <div key={i} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
+                                                    <span className="text-[9px] text-slate-500 font-cairo">{c}</span>
+                                                    <div className="w-full rounded-t bg-gradient-to-t from-[#a855f7] to-[#c084fc]" style={{ height: `${h}%` }} />
+                                                    <span className="text-[10px] text-slate-500 font-cairo truncate w-full text-center">{w.label}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    )}
                 </>
             )}
 

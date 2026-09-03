@@ -27,3 +27,17 @@ export function sendMessage(conversationId: string, message: string) {
         body: JSON.stringify({ message }),
     });
 }
+
+export function generateAiImage(prompt: string, aspectRatio?: string) {
+    return apiRequest("/ai/generate-image", {
+        method: "POST",
+        body: JSON.stringify({ prompt, aspectRatio }),
+    });
+}
+
+export function generateAiMindMap(topic: string) {
+    return apiRequest("/ai/mind-map", {
+        method: "POST",
+        body: JSON.stringify({ topic }),
+    });
+}

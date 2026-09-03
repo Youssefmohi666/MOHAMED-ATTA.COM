@@ -22,19 +22,27 @@ namespace elmanassa
             {
                 await _next(context);
             }
+            catch (BusinessRuleException ex)
+            {
+                _logger.LogWarning(ex, "Business rule violation");
+                await HandleExceptionAsync(context, ex, HttpStatusCode.Conflict);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled exception");
-                await HandleExceptionAsync(context, ex);
+                await HandleExceptionAsync(context, ex, HttpStatusCode.InternalServerError);
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception, HttpStatusCode statusCode)
         {
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            context.Response.StatusCode = (int)statusCode;
 
-            var response = new ApiResponse<object>("An unexpected error occurred.", "SERVER_ERROR", false);
+            var response = new ApiResponse<object>(
+                exception is BusinessRuleException ? exception.Message : "An unexpected error occurred.",
+                exception is BusinessRuleException ? "CONFLICT" : "SERVER_ERROR",
+                false);
 
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             var json = JsonSerializer.Serialize(response, options);

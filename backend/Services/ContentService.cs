@@ -1,5 +1,6 @@
 using elmanassa.ApplicationDbContext;
 using elmanassa.DTOs;
+using elmanassa.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace elmanassa.Services
@@ -11,6 +12,7 @@ namespace elmanassa.Services
         Task<int> GetBlogPostCountAsync();
         Task<List<SubscriptionPlanDTO>> GetSubscriptionPlansAsync();
         Task<List<TestimonialDTO>> GetTestimonialsAsync(int page = 1, int perPage = 10);
+        Task<TestimonialDTO?> AddTestimonialAsync(Guid? userId, string? name, string content);
         Task<StatisticsDTO> GetStatisticsAsync();
     }
 
@@ -163,6 +165,49 @@ namespace elmanassa.Services
             {
                 _logger.LogError(ex, "Error fetching testimonials");
                 return new List<TestimonialDTO>();
+            }
+        }
+
+        public async Task<TestimonialDTO?> AddTestimonialAsync(Guid? userId, string? name, string content)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(content)) return null;
+
+                var t = new Testimonial
+                {
+                    UserId = userId,
+                    UserName = string.IsNullOrWhiteSpace(name) ? "طالب" : name.Trim(),
+                    Text = content.Trim(),
+                    Role = "طالب",
+                    Rating = 5,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Testimonials.Add(t);
+                await _context.SaveChangesAsync();
+
+                return new TestimonialDTO
+                {
+                    Id = t.Id,
+                    UserId = t.UserId,
+                    UserName = t.UserName,
+                    StudentName = t.StudentName,
+                    JobTitle = t.JobTitle,
+                    AvatarUrl = t.AvatarUrl,
+                    Role = t.Role,
+                    Text = t.Text,
+                    Content = t.Content,
+                    Rating = t.Rating,
+                    IsApproved = t.IsApproved,
+                    CreatedAt = t.CreatedAt
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding testimonial");
+                return null;
             }
         }
 

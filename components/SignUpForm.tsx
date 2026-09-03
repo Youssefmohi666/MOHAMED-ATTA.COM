@@ -9,12 +9,24 @@ interface SignUpFormProps {
   onNavigate: (page: Page, params?: Record<string, string>) => void;
 }
 
+const calcAge = (birthdate: string): number | null => {
+  if (!birthdate) return null;
+  const bd = new Date(birthdate);
+  if (isNaN(bd.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - bd.getFullYear();
+  const m = now.getMonth() - bd.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < bd.getDate())) age--;
+  return age >= 0 ? age : null;
+};
+
 const SignUpForm: React.FC<SignUpFormProps> = ({ onNavigate }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [fullName, setFullName] = useState('');
-  const [fatherName, setFatherName] = useState('');
-  const [motherName, setMotherName] = useState('');
+  const [email, setEmail] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [fatherName, setFatherName] = useState('');
   const [fatherPhone, setFatherPhone] = useState('');
   const [motherPhone, setMotherPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -44,11 +56,21 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onNavigate }) => {
   const strengthLabels = ['', 'ضعيفة جداً', 'ضعيفة', 'متوسطة', 'قوية'];
   const strengthColors = ['', 'bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-500'];
   const strength = getPasswordStrength();
+  const age = calcAge(birthDate);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fullName.trim() || !phoneNumber.trim() || !fatherPhone.trim() || !motherPhone.trim() || !fatherName.trim() || !motherName.trim() || !password) {
+    if (
+      !fullName.trim() ||
+      !email.trim() ||
+      !birthDate ||
+      !phoneNumber.trim() ||
+      !fatherName.trim() ||
+      !fatherPhone.trim() ||
+      !motherPhone.trim() ||
+      !password
+    ) {
       setError('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
@@ -59,15 +81,19 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onNavigate }) => {
       return;
     }
 
-    const sanitizedFatherName = sanitizePlainText(fatherName, 255);
-    if (sanitizedFatherName.length < 5) {
-      setError('يرجى إدخال اسم الأب الرباعي كاملاً');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('البريد الإلكتروني غير صالح');
       return;
     }
 
-    const sanitizedMotherName = sanitizePlainText(motherName, 255);
-    if (sanitizedMotherName.length < 3) {
-      setError('يرجى إدخال اسم الأم');
+    if (age === null || age < 6 || age > 20) {
+      setError('تاريخ الميلاد غير صالح — يجب أن يكون عمر الطالب بين 6 و 20 سنة');
+      return;
+    }
+
+    const sanitizedFatherName = sanitizePlainText(fatherName, 255);
+    if (sanitizedFatherName.length < 3) {
+      setError('يرجى إدخال اسم الأب');
       return;
     }
 
@@ -89,8 +115,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onNavigate }) => {
       return;
     }
 
-    // Student's number MUST differ from both the father's and the mother's.
-    // (Father's == Mother's is allowed / normal.)
     if (cleanStudentPhone === cleanFatherPhone) {
       setError('رقم هاتف الطالب لا يمكن أن يكون هو نفسه رقم هاتف الأب');
       return;
@@ -115,15 +139,14 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onNavigate }) => {
     try {
       await signup({
         name: sanitizedName,
-        email: cleanStudentPhone + '@mohamedatta.com',
+        email: email.trim(),
         password,
         role: 'student',
         phoneNumber: cleanStudentPhone,
-        nationalId: '',
         fatherName: sanitizedFatherName,
-        motherName: sanitizedMotherName,
-        fatherPhoneNumber: cleanFatherPhone,
-        motherPhoneNumber: cleanMotherPhone,
+        guardianPhone: cleanFatherPhone,
+        motherPhone: cleanMotherPhone,
+        birthDate: birthDate, // YYYY-MM-DD
       });
       showToast('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن', 'success');
       onNavigate('login');
@@ -182,6 +205,39 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onNavigate }) => {
             />
           </div>
 
+          {/* Email */}
+          <div>
+            <label htmlFor="email" className={labelClass}>البريد الإلكتروني</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="أدخل بريدك الإلكتروني"
+              autoComplete="email"
+              className={inputClass}
+            />
+          </div>
+
+          {/* Birthdate */}
+          <div>
+            <label htmlFor="birthDate" className={labelClass}>تاريخ الميلاد</label>
+            <input
+              type="date"
+              id="birthDate"
+              name="birthDate"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              autoComplete="bday"
+              dir="ltr"
+              className={`${inputClass} text-left`}
+            />
+            <p className="text-xs text-[#737782] mt-1 text-right">
+              {age === null ? 'حدد تاريخ الميلاد لحساب العمر' : `العمر: ${age} سنة`}
+            </p>
+          </div>
+
           {/* Student Phone */}
           <div>
             <label htmlFor="phoneNumber" className={labelClass}>رقم هاتف الطالب</label>
@@ -200,30 +256,14 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onNavigate }) => {
 
           {/* Father Name */}
           <div>
-            <label htmlFor="fatherName" className={labelClass}>اسم الأب الرباعي</label>
+            <label htmlFor="fatherName" className={labelClass}>اسم الأب</label>
             <input
               type="text"
               id="fatherName"
               name="fatherName"
               value={fatherName}
               onChange={(e) => setFatherName(e.target.value)}
-              placeholder="الاسم + الأب + الجد + العائلة"
-              autoComplete="name"
-              className={inputClass}
-            />
-            <p className="text-xs text-[#737782] mt-1 text-right">الاسم الرباعي الكامل للأب</p>
-          </div>
-
-          {/* Mother Name */}
-          <div>
-            <label htmlFor="motherName" className={labelClass}>اسم الأم</label>
-            <input
-              type="text"
-              id="motherName"
-              name="motherName"
-              value={motherName}
-              onChange={(e) => setMotherName(e.target.value)}
-              placeholder="اسم الأم"
+              placeholder="الاسم الكامل للأب"
               autoComplete="name"
               className={inputClass}
             />

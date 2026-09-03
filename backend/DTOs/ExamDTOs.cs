@@ -89,6 +89,7 @@ namespace elmanassa.DTOs
     {
         public int QuestionId { get; set; }
         public string Text { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; }
         public int YourAnswer { get; set; }
         public int CorrectAnswer { get; set; }
         public bool IsCorrect { get; set; }

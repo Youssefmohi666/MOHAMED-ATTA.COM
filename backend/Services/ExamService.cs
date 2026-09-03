@@ -217,8 +217,10 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
             var exam = await _context.Set<Exam>().FindAsync(id);
             if (exam == null) return null;
 
-            var questions = JsonSerializer.Deserialize<List<ExamQuestionDTO>>(exam.QuestionsJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+var questions = string.IsNullOrWhiteSpace(exam.QuestionsJson)
+                    ? new List<ExamQuestionDTO>()
+                    : JsonSerializer.Deserialize<List<ExamQuestionDTO>>(exam.QuestionsJson,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
 
             return new ExamDetailDTO
             {
@@ -250,8 +252,10 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
 
             return exams.Select(e =>
             {
-                var questions = JsonSerializer.Deserialize<List<ExamQuestionDTO>>(e.QuestionsJson,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                var questions = string.IsNullOrWhiteSpace(e.QuestionsJson)
+                    ? new List<ExamQuestionDTO>()
+                    : JsonSerializer.Deserialize<List<ExamQuestionDTO>>(e.QuestionsJson,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
                 return new ExamListItemDTO
                 {
                     Id = e.Id,
@@ -287,8 +291,10 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
             exam.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            var questions = JsonSerializer.Deserialize<List<ExamQuestionDTO>>(exam.QuestionsJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+var questions = string.IsNullOrWhiteSpace(exam.QuestionsJson)
+                    ? new List<ExamQuestionDTO>()
+                    : JsonSerializer.Deserialize<List<ExamQuestionDTO>>(exam.QuestionsJson,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
 
             return new ExamDetailDTO
             {
@@ -323,8 +329,10 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
 
             return exams.Select(e =>
             {
-                var questions = JsonSerializer.Deserialize<List<ExamQuestionDTO>>(e.QuestionsJson,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+                var questions = string.IsNullOrWhiteSpace(e.QuestionsJson)
+                    ? new List<ExamQuestionDTO>()
+                    : JsonSerializer.Deserialize<List<ExamQuestionDTO>>(e.QuestionsJson,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
                 return new ExamListItemDTO
                 {
                     Id = e.Id, Title = e.Title, DurationMinutes = e.DurationMinutes,
@@ -349,8 +357,10 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
             var exam = await _context.Set<Exam>().FindAsync(examId);
             if (exam == null) return null;
 
-            var questions = JsonSerializer.Deserialize<List<ExamQuestionDTO>>(exam.QuestionsJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+var questions = string.IsNullOrWhiteSpace(exam.QuestionsJson)
+                    ? new List<ExamQuestionDTO>()
+                    : JsonSerializer.Deserialize<List<ExamQuestionDTO>>(exam.QuestionsJson,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
 
             int score = 0;
             var questionResults = new List<QuestionResultDTO>();
@@ -367,6 +377,7 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
                 {
                     QuestionId = q.Id,
                     Text = q.Text,
+                    ImageUrl = q.ImageUrl,
                     YourAnswer = studentAnswer,
                     CorrectAnswer = q.CorrectAnswer,
                     IsCorrect = isCorrect,
@@ -421,8 +432,10 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
             var exam = await _context.Set<Exam>().FindAsync(attempt.ExamId);
             if (exam == null) return null;
 
-            var questions = JsonSerializer.Deserialize<List<ExamQuestionDTO>>(exam.QuestionsJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+var questions = string.IsNullOrWhiteSpace(exam.QuestionsJson)
+                    ? new List<ExamQuestionDTO>()
+                    : JsonSerializer.Deserialize<List<ExamQuestionDTO>>(exam.QuestionsJson,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
 
             var answers = JsonSerializer.Deserialize<List<int>>(attempt.AnswersJson) ?? new();
 
@@ -437,6 +450,7 @@ Each question MUST have exactly 4 options. correctAnswer is the 0-based index of
                 {
                     QuestionId = q.Id,
                     Text = q.Text,
+                    ImageUrl = q.ImageUrl,
                     YourAnswer = studentAnswer,
                     CorrectAnswer = q.CorrectAnswer,
                     IsCorrect = isCorrect,

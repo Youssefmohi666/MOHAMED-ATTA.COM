@@ -82,6 +82,8 @@ export interface Employee {
     email?: string;
     phoneNumber?: string;
     salary: number;
+    salaryPaid?: number;
+    lastPaidDate?: string;
     hireDate: string;
     status: string;
     notes?: string;
@@ -119,4 +121,12 @@ export const updateEmployee = (id: string, data: Partial<Employee>) => {
 export const deleteEmployee = (id: string) => {
     if (!validateGuid(id)) throw new Error('معرف الموظف غير صالح');
     return apiRequest(`/admin/employees/${encodeURIComponent(id)}`, { method: 'DELETE' });
+};
+
+export const markEmployeePaid = (id: string, data: { amount: number; paidDate?: string }) => {
+    if (!validateGuid(id)) throw new Error('معرف الموظف غير صالح');
+    return apiRequest(`/admin/employees/${encodeURIComponent(id)}/mark-paid`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
 };

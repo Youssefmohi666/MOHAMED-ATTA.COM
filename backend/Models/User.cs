@@ -28,9 +28,16 @@ namespace elmanassa.Models
 
         public string? AvatarUrl { get; set; }
         public string? PhoneNumber { get; set; }
+        public string? GuardianPhone { get; set; }
+        [MaxLength(255)]
+        public string? FatherName { get; set; }
+        public string? MotherPhone { get; set; }
+        public string? PrimaryEmail { get; set; }
         [MaxLength(50)]
         public string? NationalId { get; set; }
         public string? Bio { get; set; }
+        [MaxLength(50)]
+        public string? CenterCode { get; set; }
 
         public bool IsActive { get; set; } = true;
         public bool IsEmailVerified { get; set; } = false;

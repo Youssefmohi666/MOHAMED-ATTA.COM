@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { getStats } from '../api/content.api';
+import { getStats, getTestimonials } from '../api/content.api';
 
 interface Testimonial {
   name: string;
@@ -7,45 +7,6 @@ interface Testimonial {
   rating: number;
   text: string;
 }
-
-const TESTIMONIALS: Testimonial[] = [
-  {
-    name: 'محمد العمري',
-    role: 'طلاب الصف الخامس الابتدائي',
-    rating: 5,
-    text: 'غيّرت طريقة تعلمي للعلوم. الشرح المبسط جعل الفهم أسهل بكثير.',
-  },
-  {
-    name: 'سارة الزهراني',
-    role: 'طالبة أولى ثانوي',
-    rating: 5,
-    text: 'تجربة تعليمية استثنائية! الخطة الدراسية ساعدتني على فهم المادة وتحسين درجاتي بشكل ملحوظ.',
-  },
-  {
-    name: 'أحمد الشمري',
-    role: 'طالب علوم',
-    rating: 5,
-    text: 'أفضل استثمار قمت به. الامتحانات تجعل مراجعة مادة العلوم سهلة ومركزة، والشرح واضح في كل المستويات.',
-  },
-  {
-    name: 'نورة القحطاني',
-    role: 'ولي أمر',
-    rating: 5,
-    text: 'التقارير الشهرية بتديني رؤية واضحة عن تقدم ابني. أقدر اهتمام المعلم بكل طالب.',
-  },
-  {
-    name: 'عبدالله المطيري',
-    role: 'طالب ثانوي',
-    rating: 5,
-    text: 'تجمع بين الجودة والسهولة. أتمكن من مشاهدة الفيديوهات وحل الامتحانات في أي وقت.',
-  },
-  {
-    name: 'ريم الدوسري',
-    role: 'طالبة ثانوي',
-    rating: 5,
-    text: 'استفدت كثيراً من الخطة الدراسية المقترحة. الأستاذ يشرح بطريقة مبسطة وواضحة.',
-  },
-];
 
 const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
   <div className="flex items-center gap-0.5" role="img" aria-label={`تقييم ${rating} من 5 نجوم`}>
@@ -125,6 +86,19 @@ const Testimonials: React.FC = () => {
     { value: '...', label: 'دورة تعليمية', color: '#3B82F6' },
     { value: '...', label: 'تسجيل في الدورات', color: '#93C5FD' },
   ]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true);
+
+  useEffect(() => {
+    getTestimonials().then((list: any[]) => {
+      setTestimonials((list || []).filter((t): t is any => !!(t && (t.text || t.content))).map((t: any) => ({
+        name: t.name || t.userName || t.studentName || 'طالب',
+        role: t.role || t.jobTitle || 'طالب',
+        rating: typeof t.rating === 'number' && t.rating >= 1 && t.rating <= 5 ? t.rating : 5,
+        text: t.text || t.content || '',
+      })));
+    }).catch(() => setTestimonials([])).finally(() => setLoadingTestimonials(false));
+  }, []);
 
   useEffect(() => {
     getStats().then((json) => {
@@ -168,9 +142,17 @@ const Testimonials: React.FC = () => {
 
         {/* Testimonials grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {TESTIMONIALS.map((testimonial, i) => (
-            <TestimonialCard key={testimonial.name} testimonial={testimonial} index={i} />
-          ))}
+          {loadingTestimonials ? (
+            <div className="col-span-full flex justify-center py-8">
+              <span className="animate-spin w-6 h-6 border-2 border-[#DC2626] border-t-transparent rounded-full" aria-label="جارٍ التحميل" />
+            </div>
+          ) : testimonials.length === 0 ? (
+            <p className="col-span-full text-center text-[#94a3b8] py-8">لا توجد آراء بعد، كن أول من يشارك رأيه!</p>
+          ) : (
+            testimonials.map((testimonial, i) => (
+              <TestimonialCard key={`${testimonial.name}-${i}`} testimonial={testimonial} index={i} />
+            ))
+          )}
         </div>
 
         {/* Bottom CTA — dark bg, sharp corners, NOT rounded */}

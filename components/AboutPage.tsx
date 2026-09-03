@@ -93,11 +93,11 @@ const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               <div className="absolute top-10 right-0 w-64 gloss-card p-5 border border-white/10 transform rotate-3 hover:rotate-0 transition-transform duration-300">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#DC2626] to-[#EF4444] rounded-2xl flex items-center justify-center mb-3 shadow-lg shadow-[#DC2626]/25">
                   <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 12h1m18 0h1m-10-9.5v1M5 3.5l.5.5m14 .5l.5-.5M2.5 12l.5.5M18 15l2 1m-4-4a4 4 0 10-1.75 3.36L18 18" />
                   </svg>
                 </div>
-                <h3 className="text-white font-bold mb-1">ذكاء اصطناعي</h3>
-                <p className="text-white/60 text-sm">تعلم تفاعلي مع مساعد ذكي</p>
+                <h3 className="text-white font-bold mb-1">خبرة تدريس حقيقية</h3>
+                <p className="text-white/60 text-sm">شرح مبسّط من مدرّس يفهم عقلية الطالب المصري</p>
               </div>
 
               <div className="absolute bottom-10 left-0 w-56 gloss-card p-5 border border-white/10 transform -rotate-3 hover:rotate-0 transition-transform duration-300">
@@ -106,12 +106,17 @@ const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 </div>
-                <h3 className="text-white font-bold mb-1">مادة واحدة متكاملة</h3>
-                <p className="text-white/60 text-sm">العلوم من رابعة ابتدائي حتى أولى ثانوي</p>
+                <h3 className="text-white font-bold mb-1">منهج Science كامل</h3>
+                <p className="text-white/60 text-sm">من الرابع الابتدائي حتى الأول الثانوي</p>
               </div>
 
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-br from-[#DC2626] to-[#1E3A8A] rounded-3xl flex items-center justify-center transform rotate-6 hover:rotate-0 transition-transform duration-300 shadow-2xl">
-                <span className="text-6xl font-black text-white">م ع</span>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden border border-white/10">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#DC2626] to-[#1E3A8A]" />
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMjQgMTBMMyA0MGg0MloyNCAxMEwiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')]" />
+                <div className="relative flex flex-col items-center justify-center text-center px-4">
+                  <span className="text-2xl font-black text-white leading-tight">علوم</span>
+                  <span className="text-white/70 text-xs mt-1">بشرح يعلّمك تفهم صح</span>
+                </div>
               </div>
             </div>
           </div>
@@ -140,7 +145,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                 </div>
                 <h2 className="text-2xl font-black text-[#1E3A8A] mb-4">مهمتنا</h2>
                 <p className="text-[#434751] leading-relaxed text-lg">
-                  تمكين الطلاب من تعلم العلوم بطريقة مبتكرة وتفاعلية. نستخدم أحدث تقنيات الذكاء الاصطناعي لتقديم تجربة تعليمية فريدة تساعد الطلاب على فهم العالم من حولهم.
+                  مهمتنا ببساطة: أن يفهم كل طالب العلوم صح، مش يدخلها حفظ وخلاص. بنشرح المنهج المصري من رابعة ابتدائي لحد أولي ثانوي بأسلوب واضح، بأمثلة من الواقع، وبتركيز على الفهم اللي بيوصّل الطالب لدرجته الكاملة في الامتحان.
                 </p>
               </div>
             </div>
@@ -157,7 +162,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                 </div>
                 <h2 className="text-2xl font-black text-[#1E3A8A] mb-4">رؤيتنا</h2>
                 <p className="text-[#434751] leading-relaxed text-lg">
-                  أن نكون الخيار الأول في مصر والعالم العربي لتعليم مادة Science بالطريقة الحديثة، ونصنع جيلاً من الطلاب المستقلين في التعلم والتفكير العلمي.
+                  نرى كل طالب قادر يعلّي ويعتمد على نفسه في مذاكرة العلوم، عنده طريقة تفكير علمية، ومحدش يفوت فرصته عشان النهج مش واضح. هدفنا إننا نبقى الوجهة الأولى اللي بتقدّم شرح يبسّط Science ويغيّر نظرة الطالب ليها.
                 </p>
               </div>
             </div>
@@ -179,27 +184,27 @@ const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               لماذا نحن
             </span>
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">ما يميزنا عن غيرنا</h2>
-            <p className="text-white/60 max-w-xl mx-auto">نجمع بين الخبرة التعليمية والتقنية لنقدم لك أفضل تجربة تعلم ممكنة</p>
+            <p className="text-white/60 max-w-xl mx-auto">مش مجرد فيديوهات — طريقة شرحه هتحس الفرق فيها من أول درس</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 num: '01',
-                title: 'محتوى علمي موثوق',
-                desc: 'جميع الدورات مراجعة من متخصصين في العلوم وفق المنهج المصري الحديث.',
+                title: 'شرح على مستوى الطالب',
+                desc: 'كل درس مرتّب خطوة بخطوة، وكل معلومة كبيرة بنقسمها لأجزاء سهل يستوعبها أي طالب.',
                 color: 'from-[#DC2626] to-[#991B1B]',
               },
               {
                 num: '02',
-                title: 'تعلم بالذكاء الاصطناعي',
-                desc: 'مساعد ذكي يجيب على أسئلتك فوراً ويساعدك على فهم المفاهيم الصعبة.',
+                title: 'مساعد ذكي جنبك',
+                desc: 'لو وقفت عند مفهوم، اسأل فوراً وهتلاقي إجابة فوريّة بتفهمك المشكلة مش بس تعليك عليها.',
                 color: 'from-[#1E3A8A] to-[#3B82F6]',
               },
               {
                 num: '03',
-                title: 'مجتمع تفاعلي',
-                desc: 'انضم لمجتمع طلاب يدعم بعضهم البعض ويشارك الموارد والمعرفة.',
+                title: 'متابعة حقيقية',
+                desc: 'بيعرفنّا بأداء كل طالب وبنقيس فهمه باختبارات بعد كل درس، عشان نضمن إنه ماشي صح من الأول.',
                 color: 'from-[#DC2626] to-[#1E3A8A]',
               },
             ].map((value, idx) => (
@@ -213,7 +218,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                 <h3 className="text-xl font-bold text-white mb-3">{value.title}</h3>
                 <p className="text-white/60 leading-relaxed">{value.desc}</p>
                 {/* Bottom accent line */}
-                <div className="absolute bottom-0 right-0 left-0 h-1 bg-gradient-to-r ${value.color} rounded-b-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-0 right-0 left-0 h-1 rounded-b-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-[#DC2626] to-[#1E3A8A]" />
               </div>
             ))}
           </div>

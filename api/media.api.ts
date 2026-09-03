@@ -334,6 +334,14 @@ export async function uploadQuestionImage(
   return _uploadFile(file, "document", undefined, onProgress);
 }
 
+/** Upload a cover image (PNG/JPEG/WebP) for a subject. Returns the created MediaFile. */
+export async function uploadSubjectImage(
+  file: File,
+  onProgress?: (pct: number) => void
+): Promise<MediaFile> {
+  return _uploadFile(file, "document", undefined, onProgress);
+}
+
 // ── PDF snipping helpers ──────────────────────────────────────────
 
 export interface PdfInfo {

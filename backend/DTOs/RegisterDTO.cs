@@ -27,7 +27,14 @@ namespace elmanassa.DTOs
         // optional metadata
         public string? AvatarUrl { get; set; }
         public string? PhoneNumber { get; set; }
+        public string? GuardianPhone { get; set; }
+        public string? FatherName { get; set; }
+        public string? MotherPhone { get; set; }
+        public string? PrimaryEmail { get; set; }
         public string? NationalId { get; set; }
         public string? Bio { get; set; }
+
+        // Student birthdate (maps to Student.DateOfBirth). Age is derived.
+        public DateTime? BirthDate { get; set; }
     }
 }

@@ -19,6 +19,9 @@ import TeacherAttendanceTab from './TeacherAttendanceTab';
 import ExamViewer from './teacher/ExamViewer';
 import QuestionBank from './teacher/QuestionBank';
 import StudentGroupsTab from './teacher/StudentGroupsTab';
+import AIServicesTab from './teacher/AIServicesTab';
+import TeacherDashboardOverview from './teacher/TeacherDashboardOverview';
+import StudyLibraryTab from './teacher/StudyLibraryTab';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import StreakBadge from './StreakBadge';
@@ -183,7 +186,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
 
     // ── Form helpers ───────────────────────────────────────────────────────
     const resetForm = () => {
-        setNewSubjectName('Science'); setNewSubjectDesc(''); setNewSubjectIcon('📚');
+        setNewSubjectName(''); setNewSubjectDesc(''); setNewSubjectIcon('📚');
         setNewSubjectPrice(0); setNewSubjectLevel('مبتدئ'); setNewSubjectCategory('عام');
         setNewSubjectGrade('الرابع الابتدائي'); setNewSubjectTerm('الترم الأول');
         setNewSubjectImageUrl('');
@@ -194,7 +197,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
     const openCreateModal = () => { resetForm(); setShowCreateModal(true); };
     const openEditModal = (subject: Subject) => {
         setEditingSubject(subject);
-        setNewSubjectName('Science'); setNewSubjectDesc(subject.description);
+        setNewSubjectName(subject.title); setNewSubjectDesc(subject.description);
         setNewSubjectIcon(subject.icon);
         setNewSubjectPrice(subject.price || 0);
         setNewSubjectLevel(subject.level || 'مبتدئ');
@@ -543,6 +546,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
 
                 {/* Page content */}
                 <main className="flex-1 overflow-y-auto p-5">
+                    {activeNav === 'overview' && <TeacherDashboardOverview />}
                     {(activeNav === 'dashboard' || activeNav === 'subjects') && (
                         <>
                             <div className="relative overflow-hidden bg-[#121f36] border border-white/[0.06] rounded-3xl p-6 sm:p-7 mb-6 shadow-xl shadow-black/20">
@@ -586,6 +590,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ onNavigate, initial
                     )}
                     {activeNav === 'students' && <TeacherStudents />}
                     {activeNav === 'groups' && <StudentGroupsTab />}
+                    {activeNav === 'library' && <StudyLibraryTab />}
+                    {activeNav === 'ai' && <AIServicesTab />}
                     {activeNav === 'analytics' && (
                         <TeacherAnalytics subjects={subjects} totalSubjects={totalSubjects} totalStudents={totalStudents} totalLectures={totalLectures} publishedCount={publishedCount} activities={apiActivities} />
                     )}

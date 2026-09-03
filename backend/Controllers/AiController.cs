@@ -244,6 +244,60 @@ namespace elmanassa.Controllers
             var reply = await _aiService.PublicChatAsync(model.Message, history);
             return Ok(new { reply });
         }
+
+        /// <summary>
+        /// Generate an AI image (teacher AI services) — requires authentication.
+        /// </summary>
+        [Authorize]
+        [HttpPost("generate-image")]
+        public async Task<ActionResult<ApiResponse<ImageGenerationDTO>>> GenerateImage([FromBody] GenerateImageDTO model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Prompt))
+                    return BadRequest(new ApiResponse<object>("الوصف مطلوب", "VALIDATION_ERROR", false));
+
+                var dataUrl = await _aiService.GenerateImageAsync(model.Prompt, model.AspectRatio, GetUserId());
+                if (string.IsNullOrEmpty(dataUrl))
+                    return StatusCode(502, new ApiResponse<object>(
+                        "تعذّر توليد الصورة، حاول مرة أخرى لاحقاً", "IMAGE_GENERATION_FAILED", false));
+
+                return Ok(new ApiResponse<ImageGenerationDTO>(new ImageGenerationDTO { DataUrl = dataUrl }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating image");
+                return StatusCode(500, new ApiResponse<object>(
+                    "حدث خطأ أثناء توليد الصورة", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>
+        /// Generate an AI mind-map (teacher AI services) — requires authentication.
+        /// </summary>
+        [Authorize]
+        [HttpPost("mind-map")]
+        public async Task<ActionResult<ApiResponse<MindMapResponseDTO>>> GenerateMindMap([FromBody] GenerateMindMapDTO model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Topic))
+                    return BadRequest(new ApiResponse<object>("الموضوع مطلوب", "VALIDATION_ERROR", false));
+
+                var root = await _aiService.GenerateMindMapAsync(model.Topic, GetUserId());
+                if (root == null)
+                    return StatusCode(502, new ApiResponse<object>(
+                        "تعذّر توليد الخريطة الذهنية، حاول مرة أخرى لاحقاً", "MINDMAP_GENERATION_FAILED", false));
+
+                return Ok(new ApiResponse<MindMapResponseDTO>(new MindMapResponseDTO { Root = root }));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating mind-map");
+                return StatusCode(500, new ApiResponse<object>(
+                    "حدث خطأ أثناء توليد الخريطة الذهنية", "SERVER_ERROR", false));
+            }
+        }
     }
 }
 
@@ -281,5 +335,26 @@ namespace elmanassa.DTOs
         public string Analysis { get; set; } = string.Empty;
         public string? Summary { get; set; }
         public string? FileName { get; set; }
+    }
+
+    public class GenerateImageDTO
+    {
+        public string Prompt { get; set; } = string.Empty;
+        public string? AspectRatio { get; set; }
+    }
+
+    public class ImageGenerationDTO
+    {
+        public string DataUrl { get; set; } = string.Empty;
+    }
+
+    public class GenerateMindMapDTO
+    {
+        public string Topic { get; set; } = string.Empty;
+    }
+
+    public class MindMapResponseDTO
+    {
+        public Services.MindMapNode? Root { get; set; }
     }
 }

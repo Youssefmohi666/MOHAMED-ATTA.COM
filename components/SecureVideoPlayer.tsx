@@ -273,9 +273,20 @@ const SecureVideoPlayer: React.FC<SecureVideoPlayerProps> = ({ lectureId, mediaF
     );
 };
 
-// ── Dynamic watermark that moves with video progress ──────────────────────────
-const DynamicWatermark: React.FC<{ email: string; progress: number }> = ({ email, progress }) => {
+// ── Dynamic watermark: a single line that moves to random positions ────────────
+const DynamicWatermark: React.FC<{ email: string; progress: number }> = ({ email }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [pos, setPos] = useState<{ x: number; y: number }>({ x: 8, y: 8 });
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setPos({
+                x: Math.random() * 75 + 5,
+                y: Math.random() * 75 + 5,
+            });
+        }, 3500);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -286,32 +297,17 @@ const DynamicWatermark: React.FC<{ email: string; progress: number }> = ({ email
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
 
-        const text = email;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.save();
-        ctx.globalAlpha = 0.15;
+        ctx.globalAlpha = 0.18;
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 13px monospace';
-
-        // Position based on progress — moves across the screen
         const angle = -Math.PI / 6;
+        ctx.translate((pos.x / 100) * canvas.width, (pos.y / 100) * canvas.height);
         ctx.rotate(angle);
-
-        const cols = Math.ceil(canvas.width / 220) + 1;
-        const rows = Math.ceil(canvas.height / 80) + 1;
-
-        // Shift pattern based on progress
-        const offsetX = (progress * 2) % 220;
-        const offsetY = (progress * 1.5) % 80;
-
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                ctx.fillText(text, -canvas.width * 0.3 + c * 220 + offsetX, -canvas.height * 0.1 + r * 80 + offsetY);
-            }
-        }
-
+        ctx.fillText(email, 0, 0);
         ctx.restore();
-    }, [email, progress]);
+    }, [email, pos]);
 
     return (
         <canvas

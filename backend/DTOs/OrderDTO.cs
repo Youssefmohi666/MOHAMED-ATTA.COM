@@ -85,6 +85,17 @@ namespace elmanassa.DTOs
         public DateTime? LastAccessed { get; set; }
     }
 
+    public class VideoViewDTO
+    {
+        public Guid LectureId { get; set; }
+        public string LectureTitle { get; set; } = string.Empty;
+        public string SubjectName { get; set; } = string.Empty;
+        public int ProgressPct { get; set; }
+        public string Duration { get; set; } = "00:00";
+        public bool Completed { get; set; }
+        public DateTime LastWatchedAt { get; set; }
+    }
+
     public class LectureProgressUpdateDTO
     {
         [Required]

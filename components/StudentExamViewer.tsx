@@ -204,10 +204,61 @@ const ExamResultsView: React.FC<{
     result: ExamResult;
     onBack: () => void;
 }> = ({ result, onBack }) => {
-    const formatTime = (s: number) => {
-        const m = Math.floor(s / 60);
-        const sec = s % 60;
-        return `${m}:${String(sec).padStart(2, '0')}`;
+    const [filter, setFilter] = useState<'all' | 'correct' | 'wrong' | 'solved' | 'unsolved'>('all');
+    const [showDetails, setShowDetails] = useState(true);
+
+    const total = result.questionResults.length;
+    const solved = result.questionResults.filter(q => q.yourAnswer >= 0).length;
+    const correct = result.questionResults.filter(q => q.isCorrect).length;
+    const wrong = result.questionResults.filter(q => q.yourAnswer >= 0 && !q.isCorrect).length;
+    const unsolved = total - solved;
+
+    const filtered = result.questionResults.filter(q => {
+        switch (filter) {
+            case 'correct': return q.isCorrect;
+            case 'wrong': return q.yourAnswer >= 0 && !q.isCorrect;
+            case 'solved': return q.yourAnswer >= 0;
+            case 'unsolved': return q.yourAnswer < 0;
+            default: return true;
+        }
+    });
+
+    const statContent = (label: string, value: string | number, color: string) => (
+        <div className="text-center">
+            <div className={`text-2xl font-extrabold font-cairo ${color}`}>{value}</div>
+            <div className="text-xs text-slate-500 mt-1 font-cairo">{label}</div>
+        </div>
+    );
+
+    const filters: { key: typeof filter; label: string; count: number; active: string }[] = [
+        { key: 'all', label: 'الكل', count: total, active: 'text-slate-200 border-slate-400/40' },
+        { key: 'correct', label: 'الصحيحة', count: correct, active: 'text-green-400 border-green-500/40' },
+        { key: 'wrong', label: 'الخاطئة', count: wrong, active: 'text-red-400 border-red-500/40' },
+        { key: 'solved', label: 'المحلولة', count: solved, active: 'text-sky-400 border-sky-500/40' },
+        { key: 'unsolved', label: 'الغير محلولة', count: unsolved, active: 'text-amber-400 border-amber-500/40' },
+    ];
+
+    const fmtStartTime = (iso: string) => {
+        if (!iso) return '——';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return String(iso);
+        const time = d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const date = d.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        return `${time} ${date}`;
+    };
+
+    const fmtDuration = (secs: number) => {
+        if (secs <= 0) return '——';
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        if (m < 1) return `${s} ثانية`;
+        return `${m} دقائق و ${s} ثانية`;
+    };
+
+    const optionStatus = (qr: { yourAnswer: number; correctAnswer: number }, idx: number) => {
+        if (idx === qr.correctAnswer) return 'correct';
+        if (idx === qr.yourAnswer) return 'wrong';
+        return 'none';
     };
 
     return (
@@ -218,56 +269,109 @@ const ExamResultsView: React.FC<{
                 العودة إلى الاختبارات
             </button>
 
-            <div className="border border-white/[0.08] bg-[#0a0a0a] p-6 mb-5 text-center">
-                <div className={`w-16 h-16 flex items-center justify-center mx-auto mb-4 text-2xl font-bold border-2
+            <div className="border border-white/[0.08] bg-[#0a0a0a] p-6 mb-5">
+                <p className="text-xs font-bold tracking-widest text-slate-500 mb-1 font-cairo">الدرجات</p>
+                <div className={`w-12 h-12 flex items-center justify-center mb-4 text-2xl font-bold border-2
                     ${result.passed ? 'bg-green-500/10 text-green-400 border-green-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'}`}>
                     {result.passed ? '✓' : '✗'}
                 </div>
-                <h2 className="text-xl font-bold text-slate-100 mb-2 font-cairo">{result.examTitle}</h2>
-                <p className="text-sm text-slate-500 mb-4 font-cairo">النتيجة</p>
-                <div className="flex items-center justify-center gap-8">
-                    <div>
-                        <div className={`text-3xl font-extrabold font-cairo ${result.passed ? 'text-green-400' : 'text-red-400'}`}>
-                            {result.percentage}%
-                        </div>
-                        <div className="text-xs text-slate-500 mt-1 font-cairo">النسبة المئوية</div>
+                <h2 className="text-xl font-bold text-slate-100 mb-4 font-cairo">{result.examTitle}</h2>
+
+                <p className="text-xs text-slate-500 mb-2 font-cairo">دوس على الأسئلة الصحيحة أو الخاطئة أو المحلولة أو الغير محلولة عشان تشوفها بسرعة</p>
+                <div className="flex flex-wrap gap-2 mb-5">
+                    {filters.map(f => (
+                        <button key={f.key} onClick={() => setFilter(f.key)}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-bold border cursor-pointer bg-transparent transition-colors font-cairo
+                                ${filter === f.key ? f.active : 'text-slate-500 border-white/10 hover:text-slate-300'}`}>
+                            {f.label} ({f.count})
+                        </button>
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
+                    {statContent('عدد الأسئلة', total, 'text-slate-100')}
+                    {statContent('النتيجة', `${Math.round(result.percentage)}%`, result.passed ? 'text-green-400' : 'text-red-400')}
+                    {statContent('الأسئلة المحلولة', solved, 'text-sky-400')}
+                    {statContent('الأسئلة الخاطئة', wrong, 'text-red-400')}
+                    {statContent('الأسئلة الصحيحة', correct, 'text-green-400')}
+                    {statContent('الأسئلة الغير محلولة', unsolved, 'text-amber-400')}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-2 border-t border-white/[0.06] pt-4 text-xs font-cairo">
+                    <div className="flex items-center gap-2">
+                        <span className="text-slate-500">وقت البدء:</span>
+                        <span className="font-bold text-slate-200">{fmtStartTime(result.startedAt)}</span>
                     </div>
-                    <div className="w-px h-12 bg-white/[0.08]" />
-                    <div>
-                        <div className="text-3xl font-extrabold text-amber-400 font-cairo">{result.score}/{result.totalPoints}</div>
-                        <div className="text-xs text-slate-500 mt-1 font-cairo">الدرجة</div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-slate-500">المدة المستغرقة:</span>
+                        <span className="font-bold text-slate-200">{fmtDuration(result.timeSpentSeconds)}</span>
                     </div>
-                    <div className="w-px h-12 bg-white/[0.08]" />
-                    <div>
-                        <div className="text-2xl font-extrabold text-sky-400 font-cairo">{formatTime(result.timeSpentSeconds)}</div>
-                        <div className="text-xs text-slate-500 mt-1 font-cairo">الوقت المستغرق</div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-slate-500">درجة واحدة</span>
                     </div>
                 </div>
+
+                <button onClick={() => setShowDetails(s => !s)}
+                    className={`mt-5 w-full flex items-center justify-center gap-2 border rounded-xl px-4 py-2.5 text-sm font-bold cursor-pointer transition-colors font-cairo
+                        ${showDetails ? 'border-sky-500/30 text-sky-400 hover:bg-sky-500/5' : 'border-white/10 text-slate-300 hover:bg-white/5'}`}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: showDetails ? 'rotate(180deg)' : 'none' }}><path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    إظهار تفاصيل الإجابات حسب الفروع
+                </button>
             </div>
 
-            <div className="space-y-3">
-                {result.questionResults.map((qr, i) => (
-                    <div key={qr.questionId} className={`border p-4 ${qr.isCorrect ? 'bg-green-500/5 border-green-500/15' : 'bg-red-500/5 border-red-500/15'}`}>
-                        <p className="text-sm font-bold text-slate-100 mb-3 font-cairo">
-                            س {i + 1}: {qr.text}
-                            <span className="text-xs font-normal mr-2 text-slate-500">({qr.earnedPoints}/{qr.points})</span>
-                        </p>
-                        <div className="space-y-1.5">
-                            {[
-                                { label: 'إجابتك', value: qr.yourAnswer, isCorrect: qr.isCorrect },
-                                { label: 'الإجابة الصحيحة', value: qr.correctAnswer },
-                            ].map((item, j) => (
-                                <div key={j} className="flex items-center gap-2 text-xs font-cairo">
-                                    <span className="text-slate-500 shrink-0">{item.label}:</span>
-                                    <span className={`${j === 0 ? (item.isCorrect ? 'text-green-400' : 'text-red-400') : 'text-[#EF4444]'} font-bold`}>
-                                        {item.value >= 0 ? ARABIC_LETTERS[item.value] || String(item.value + 1) : '——'}
+            {showDetails && (
+                <div className="space-y-3">
+                    {filtered.map((qr, i) => {
+                        const isUnsolved = qr.yourAnswer < 0;
+                        return (
+                            <div key={qr.questionId}
+                                className={`border p-4 ${isUnsolved ? 'border-amber-500/20 bg-amber-500/[0.03]' : qr.isCorrect ? 'border-green-500/15 bg-green-500/5' : 'border-red-500/15 bg-red-500/5'}`}>
+                                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold font-cairo
+                                        ${isUnsolved ? 'bg-amber-500/15 text-amber-400' : qr.isCorrect ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}`}>
+                                        {isUnsolved ? 'غير محلولة' : qr.isCorrect ? 'إجابة صحيحة' : 'اجابة خاطئة'}
                                     </span>
+                                    <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 font-cairo">
+                                        <span className="px-2 py-0.5 bg-white/[0.04] rounded-md">درجة واحدة</span>
+                                        <span className="px-2 py-0.5 bg-white/[0.04] rounded-md">{i + 1}/{total}</span>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
+
+                                <p className="text-sm font-bold text-slate-100 mb-3 font-cairo">{qr.text}</p>
+
+                                {qr.imageUrl && (
+                                    <div className="mb-3">
+                                        <img src={authedImageUrl(qr.imageUrl)} alt="صورة السؤال"
+                                            className="max-h-56 rounded-lg border border-white/[0.08] object-contain bg-black" />
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                    {[0, 1, 2, 3].map((optIdx, j) => {
+                                        const letter = ARABIC_LETTERS[optIdx] || String(optIdx + 1);
+                                        const os = optionStatus(qr, optIdx);
+                                        if (os === 'none') return null;
+                                        const isCorrectOpt = os === 'correct';
+                                        const isWrongChosen = os === 'wrong';
+                                        return (
+                                            <div key={optIdx}
+                                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold font-cairo border
+                                                    ${isCorrectOpt ? 'bg-green-500/10 border-green-500/25 text-green-300' : isWrongChosen ? 'bg-red-500/10 border-red-500/25 text-red-300' : 'border-transparent'}`}>
+                                                <span className={`w-6 h-6 flex items-center justify-center rounded-md text-xs border shrink-0
+                                                    ${isCorrectOpt ? 'bg-green-500 text-black border-green-500' : isWrongChosen ? 'bg-red-500 text-black border-red-500' : 'bg-white/5 border-white/10 text-slate-400'}`}>
+                                                    {letter}
+                                                </span>
+                                                <span className="truncate">{isCorrectOpt ? 'الاجابة الصحيحة' : 'اجابتك الخاطئة'}</span>
+                                            </div>
+                                        );
+                                    })}
+                                    {isUnsolved && <span className="text-xs text-amber-400/80 font-cairo">لم يتم الإجابة على هذا السؤال</span>}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 };

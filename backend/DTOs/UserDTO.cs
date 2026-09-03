@@ -6,9 +6,14 @@ namespace elmanassa.DTOs
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
+        public string? GuardianPhone { get; set; }
+        public string? FatherName { get; set; }
+        public string? MotherPhone { get; set; }
+        public string? PrimaryEmail { get; set; }
         public string? NationalId { get; set; }
         public string? AvatarUrl { get; set; }
         public string? Bio { get; set; }
+        public string? CenterCode { get; set; }
         public string Role { get; set; } = "student";
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; }
@@ -18,6 +23,10 @@ namespace elmanassa.DTOs
     {
         public string? Name { get; set; }
         public string? PhoneNumber { get; set; }
+        public string? GuardianPhone { get; set; }
+        public string? FatherName { get; set; }
+        public string? MotherPhone { get; set; }
+        public string? PrimaryEmail { get; set; }
         public string? AvatarUrl { get; set; }
         public string? Bio { get; set; }
     }

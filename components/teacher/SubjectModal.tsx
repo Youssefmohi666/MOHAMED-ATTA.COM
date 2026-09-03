@@ -1,7 +1,7 @@
 ﻿
 import React, { useRef, useEffect } from 'react';
 import { Subject, Level, Lecture, LectureDoc, categoryIcons } from './types';
-import { uploadMediaFile, uploadDocumentFile, waitForHlsReady } from '../../api/media.api';
+import { uploadMediaFile, uploadDocumentFile, uploadSubjectImage, authedImageUrl, waitForHlsReady } from '../../api/media.api';
 import SelectField from '../SelectField';
 
 interface SubjectModalProps {
@@ -78,6 +78,9 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
 }) => {
     const videoInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
     const docInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+    const coverInputRef = useRef<HTMLInputElement | null>(null);
+    const [coverUploading, setCoverUploading] = React.useState(false);
+    const [coverHovering, setCoverHovering] = React.useState(false);
     // Keep a ref to the latest savedSubjectId so upload callbacks can read it
     // even after the modal closes (closures would capture stale value otherwise)
     const savedSubjectIdRef = useRef<string | undefined>(savedSubjectId);
@@ -164,6 +167,27 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
                 (prev || []).map(d => d.id === docId ? { ...d, uploadStatus: 'error', uploadError: err.message || 'فشل رفع الملف' } : d)
             );
         }
+    };
+
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        if (!/^image\/(png|jpe?g|webp|gif|bmp|tiff?)/i.test(file.type)) {
+            alert('يرجى اختيار صورة (PNG / JPG / WebP)');
+            return;
+        }
+        setCoverUploading(true);
+        try {
+            const mediaFile = await uploadSubjectImage(file);
+            const stored = `/api/v1/media/image/${mediaFile.id}`;
+            setNewSubjectImageUrl(stored);
+            console.log('[CoverUpload] OK', stored);
+        } catch (err: any) {
+            console.error('[CoverUpload] FAILED:', err);
+            alert(err?.message || 'فشل رفع صورة الغلاف');
+        }
+        setCoverUploading(false);
     };
 
     const handleVideoInputChange = (levelId: string, lecId: string, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,15 +302,22 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
                                 <label htmlFor="subject-name" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
                                     اسم المادة *
                                 </label>
-                                <div style={{
-                                    width: '100%', padding: '12px 16px',
-                                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '12px', color: '#e2e8f0', fontSize: '15px',
-                                    fontFamily: "'Cairo', sans-serif", display: 'flex', alignItems: 'center', gap: '8px',
-                                }}>
-                                    <span>🔬</span>
-                                    <span style={{ fontWeight: 700 }}>Science</span>
-                                </div>
+                                <input
+                                    id="subject-name"
+                                    name="subjectName"
+                                    type="text"
+                                    value={newSubjectName}
+                                    onChange={e => setNewSubjectName(e.target.value)}
+                                    placeholder="اكتب اسم المادة هنا (مثال: الرياضيات، العلوم المتكاملة...)"
+                                    style={{
+                                        width: '100%', padding: '12px 16px',
+                                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                        borderRadius: '12px', color: '#e2e8f0', fontSize: '15px',
+                                        fontFamily: "'Cairo', sans-serif", outline: 'none',
+                                    }}
+                                    onFocus={e => e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)'}
+                                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                                />
                             </div>
                             <div>
                                 <label htmlFor="subject-desc" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
@@ -362,33 +393,87 @@ const SubjectModal: React.FC<SubjectModalProps> = ({
                             </div>
                             <div>
                                 <label htmlFor="subject-image" style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block' }}>
-                                    رابط صورة المادة
+                                    صورة الغلاف (اختياري)
                                 </label>
+                                <div
+                                    onClick={() => coverInputRef.current?.click()}
+                                    style={{
+                                        width: '100%', padding: newSubjectImageUrl ? '8px' : '12px 16px',
+                                        background: newSubjectImageUrl ? '#0b1727' : 'rgba(255,255,255,0.05)',
+                                        border: '1px dashed rgba(245,158,11,0.35)',
+                                        borderRadius: '12px', cursor: 'pointer',
+                                        minHeight: '72px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        overflow: 'hidden', transition: 'border-color 0.2s',
+                                    }}
+                                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(245,158,11,0.7)'}
+                                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(245,158,11,0.35)'}
+                                >
+                                    {coverUploading ? (
+                                        <span style={{ color: '#f59e0b', fontSize: '14px', fontWeight: 600, fontFamily: "'Cairo', sans-serif" }}>
+                                            جارٍ رفع الصورة...
+                                        </span>
+                                    ) : newSubjectImageUrl ? (
+                                        <div style={{ position: 'relative', width: '100%' }}>
+                                            <img
+                                                src={authedImageUrl(newSubjectImageUrl)}
+                                                alt="غلاف المادة"
+                                                style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px', display: 'block' }}
+                                            />
+                                            <div style={{
+                                                position: 'absolute', inset: '0 0 0 0', borderRadius: '8px',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                background: 'rgba(0,0,0,0.45)', opacity: 0, transition: 'opacity 0.2s',
+                                            }} className="cover-hover-overlay">
+                                                <span style={{ color: '#fff', fontSize: '13px', fontWeight: 700, fontFamily: "'Cairo', sans-serif" }}>
+                                                    اضغط لتغيير الصورة
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '22px', marginBottom: '4px' }}>🖼️</div>
+                                            <div style={{ color: '#94a3b8', fontSize: '13px', fontFamily: "'Cairo', sans-serif" }}>
+                                                اضغط لرفع صورة الغلاف من جهازك
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                                 <input
+                                    ref={coverInputRef}
                                     id="subject-image"
                                     name="subjectImage"
-                                    type="url"
-                                    value={newSubjectImageUrl}
-                                    onChange={e => setNewSubjectImageUrl(e.target.value)}
-                                    placeholder="https://example.com/image.jpg"
-                                    style={{
-                                        width: '100%', padding: '12px 16px',
-                                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '12px', color: '#e2e8f0', fontSize: '15px',
-                                        fontFamily: "'Cairo', sans-serif", outline: 'none',
-                                    }}
-                                    onFocus={e => e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)'}
-                                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/webp,image/gif,image/bmp"
+                                    onChange={handleCoverUpload}
+                                    style={{ display: 'none' }}
                                 />
-                                <div style={{ 
-                                    fontSize: '11px', 
-                                    color: '#64748b', 
+                                {newSubjectImageUrl && (
+                                    <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewSubjectImageUrl('')}
+                                            style={{
+                                                background: 'rgba(239,68,68,0.12)', color: '#f87171', border: 'none',
+                                                borderRadius: '8px', padding: '4px 12px', fontSize: '12px', fontWeight: 700,
+                                                cursor: 'pointer', fontFamily: "'Cairo', sans-serif",
+                                            }}
+                                        >
+                                            إزالة الصورة
+                                        </button>
+                                        <span style={{ fontSize: '11px', color: '#64748b' }}>
+                                            ✅ تم رفع الصورة من جهازك
+                                        </span>
+                                    </div>
+                                )}
+                                <div style={{
+                                    fontSize: '11px',
+                                    color: '#64748b',
                                     marginTop: '6px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '4px'
                                 }}>
-                                    🖼️ رابط صورة الغلاف للمادة (اختياري)
+                                    🖼️ يمكنك رفع صورة الغلاف من جهازك (PNG / JPG / WebP)
                                 </div>
                             </div>
                             <div>

@@ -47,6 +47,7 @@ export interface ExamResult {
     questionResults: {
         questionId: number;
         text: string;
+        imageUrl?: string;
         yourAnswer: number;
         correctAnswer: number;
         isCorrect: boolean;

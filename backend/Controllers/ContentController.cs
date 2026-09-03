@@ -2,6 +2,7 @@ using elmanassa.DTOs;
 using elmanassa.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace elmanassa.Controllers
 {
@@ -126,6 +127,40 @@ namespace elmanassa.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching statistics");
+                return StatusCode(500, new ApiResponse<object>(
+                    "An error occurred", "SERVER_ERROR", false));
+            }
+        }
+
+        /// <summary>
+        /// Submit a user comment/testimonial (logged-in users)
+        /// </summary>
+        [Authorize]
+        [HttpPost("content/comments")]
+        public async Task<ActionResult<ApiResponse<TestimonialDTO>>> PostComment([FromBody] CommentCreateDTO model)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(model.Content))
+                    return BadRequest(new ApiResponse<object>(
+                        "التعليق لا يمكن أن يكون فارغاً", "VALIDATION_ERROR", false));
+
+                Guid? userId = null;
+                var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(idClaim, out var parsed)) userId = parsed;
+
+                string? name = User.FindFirst("name")?.Value ?? User.FindFirst(ClaimTypes.Name)?.Value;
+
+                var saved = await _contentService.AddTestimonialAsync(userId, name, model.Content);
+                if (saved == null)
+                    return StatusCode(500, new ApiResponse<object>(
+                        "تعذر حفظ التعليق", "SERVER_ERROR", false));
+
+                return Ok(new ApiResponse<TestimonialDTO>(saved));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error posting comment");
                 return StatusCode(500, new ApiResponse<object>(
                     "An error occurred", "SERVER_ERROR", false));
             }

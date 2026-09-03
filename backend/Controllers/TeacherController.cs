@@ -169,6 +169,12 @@ namespace elmanassa.Controllers
 
                 return Ok(new ApiResponse<object>(new { message = "تم الحذف" }));
             }
+            catch (BusinessRuleException ex)
+            {
+                _logger.LogWarning(ex, "Business rule prevented subject deletion");
+                return StatusCode(409, new ApiResponse<object>(
+                    ex.Message, "CONFLICT", false));
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting subject");
